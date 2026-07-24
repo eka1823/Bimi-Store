@@ -1562,9 +1562,10 @@ function toPDF(pages, wmm, hmm){
     // gambar
     b.imgs.forEach((im,i)=>{
       const n=b.imgNs[i];
+      const bytes = im.bytes || dataUrlToBytes(im.url);
       offs[n]=len;
-      put(`${n} 0 obj\n<</Type/XObject/Subtype/Image/Width ${im.w}/Height ${im.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${im.bytes.length}>>\nstream\n`);
-      put(im.bytes);
+      put(`${n} 0 obj\n<</Type/XObject/Subtype/Image/Width ${im.w}/Height ${im.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${bytes.length}>>\nstream\n`);
+      put(bytes);
       put('\nendstream\nendobj\n');
     });
     const xo = b.imgNs.length ? `/XObject<<${b.imgNs.map((n,i)=>`/Im${i} ${n} 0 R`).join(' ')}>>` : '';
@@ -2095,19 +2096,23 @@ function renderNbPreview(){
     : 'Satu lembar F4 = 2 halaman. Lipat di garis putus-putus tengah.';
 }
 function nbPdfBlob(pages){
-  return new Blob([toPDF(pages, F4W, F4H)], {type:'application/pdf'});
+  try{
+    return new Blob([toPDF(pages, F4W, F4H)], {type:'application/pdf'});
+  }catch(e){ toast('Gagal membuat PDF: '+(e&&e.message||'error'),true); return null; }
 }
 function nbFileName(sfx){
   const m=(NB.f.mapel||'buku').replace(/[^0-9A-Za-z]+/g,'-');
   return `bukutulis_${m}${sfx||''}.pdf`;
 }
 function nbUnduh(pages, sfx){
+  const blob=nbPdfBlob(pages); if(!blob) return;
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(nbPdfBlob(pages));
+  a.href=URL.createObjectURL(blob);
   a.download=nbFileName(sfx); a.click();
 }
 async function nbKirim(pages, sfx){
-  const blob=nbPdfBlob(pages), name=nbFileName(sfx);
+  const blob=nbPdfBlob(pages); if(!blob) return;
+  const name=nbFileName(sfx);
   const file=new File([blob], name, {type:'application/pdf'});
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{ await navigator.share({files:[file], title:'Buku Tulis'}); }
