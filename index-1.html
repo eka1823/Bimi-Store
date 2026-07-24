@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BIMI Store — Cetak Pas Foto</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15171c">
+<meta name="description" content="Cetak pas foto berbagai ukuran dan buat buku tulis sekolah. Semua diproses di perangkat.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BIMI Store">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15171c; --panel:#1d2027; --panel2:#242832; --panel3:#2b303b;
+    --line:#343a47; --line2:#3f4655;
+    --ink:#eceef2; --muted:#98a0ae; --muted2:#6f7787;
+    --accent:#ecab4b; --accent-d:#c98a2e; --accent-soft:rgba(236,171,75,.14);
+    --ok:#4bbf7b; --danger:#e5675c;
+    --radius:14px; --radius-s:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #20242e 0%, transparent 55%),
+      radial-gradient(1000px 700px at 110% 10%, #1e232c 0%, transparent 50%),
+      var(--bg);
+    color:var(--ink);
+    font-family:Inter,system-ui,sans-serif;
+    font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0}
+  .wrap{max-width:1280px;margin:0 auto;padding:22px}
+
+  /* Header */
+  header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .logo{width:44px;height:44px;border-radius:12px;flex:none;position:relative;
+    background:linear-gradient(145deg,var(--accent),var(--accent-d));
+    box-shadow:0 6px 18px -6px rgba(236,171,75,.5), inset 0 1px 0 rgba(255,255,255,.35)}
+  .logo::before{content:"";position:absolute;inset:9px 9px 13px 9px;border-radius:5px;
+    background:#15171c;box-shadow:inset 0 0 0 2px rgba(255,255,255,.15)}
+  .logo::after{content:"";position:absolute;left:50%;top:15px;width:12px;height:12px;
+    transform:translateX(-50%);border-radius:50%;background:var(--accent);
+    box-shadow:0 6px 0 -2px var(--accent)}
+  .brand h1{font-size:19px;letter-spacing:-.3px}
+  .brand p{margin:1px 0 0;color:var(--muted);font-size:12.5px}
+  .badge{margin-left:auto;font-size:11.5px;color:var(--muted);border:1px solid var(--line);
+    padding:6px 11px;border-radius:20px;background:var(--panel)}
+  .instbtn{padding:8px 13px;font-size:12.5px;border-radius:20px;flex:none}
+  .instbtn svg{width:15px;height:15px}
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+
+  /* Layout */
+  .grid{display:grid;grid-template-columns:352px 1fr;gap:18px;align-items:start}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:16px}
+
+  .card{background:linear-gradient(180deg,var(--panel) 0%, #1a1d24 100%);
+    border:1px solid var(--line);border-radius:var(--radius);padding:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset}
+  .card h3{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);
+    font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}
+  .card h3 .n{width:20px;height:20px;border-radius:6px;background:var(--accent-soft);
+    color:var(--accent);display:grid;place-items:center;font-size:11px;font-family:'Space Grotesk';
+    font-weight:700;border:1px solid rgba(236,171,75,.25)}
+
+  /* Upload */
+  .drop{border:1.5px dashed var(--line2);border-radius:var(--radius-s);padding:26px 14px;
+    text-align:center;cursor:pointer;transition:.18s;background:var(--panel2)}
+  .drop:hover,.drop.hot{border-color:var(--accent);background:var(--accent-soft)}
+  .drop svg{width:30px;height:30px;color:var(--muted);margin-bottom:6px}
+  .drop b{color:var(--ink);font-weight:600}
+  .drop small{display:block;color:var(--muted2);margin-top:4px;font-size:11.5px}
+  .drop.has{padding:12px}
+  .thumb{display:flex;align-items:center;gap:11px;text-align:left}
+  .thumb img{width:46px;height:46px;border-radius:8px;object-fit:cover;background:#000;flex:none}
+  .thumb .info{min-width:0}
+  .thumb .info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .thumb .info span{color:var(--muted);font-size:11.5px}
+  .thumb .rep{margin-left:auto;font-size:11.5px;color:var(--accent);cursor:pointer;flex:none}
+
+  /* Segmented + chips */
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:8px 6px;border-radius:7px;
+    cursor:pointer;font:inherit;font-size:12.5px;font-weight:500;transition:.15s}
+  .seg button.on{background:var(--accent);color:#221a08;font-weight:600;box-shadow:0 2px 8px -2px rgba(236,171,75,.6)}
+  .seg.subtle button.on{background:var(--panel3);color:var(--ink);box-shadow:none}
+
+  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .chip{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;
+    padding:10px 6px;cursor:pointer;text-align:center;transition:.15s;font:inherit}
+  .chip:hover{border-color:var(--line2)}
+  .chip.on{border-color:var(--accent);background:var(--accent-soft)}
+  .chip b{display:block;font-family:'Space Grotesk';font-size:15px;font-weight:600}
+  .chip small{color:var(--muted);font-size:10.5px}
+
+  .row{display:flex;gap:9px;align-items:center}
+  .row.mt{margin-top:11px}
+  label.fld{flex:1;font-size:12px;color:var(--muted)}
+  label.fld input, .num input, select{width:100%;margin-top:5px;background:var(--panel2);
+    border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 10px;font:inherit;font-size:13px}
+  input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  select{cursor:pointer}
+
+  /* Colors */
+  .swatches{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+  .sw{width:38px;height:38px;border-radius:10px;cursor:pointer;position:relative;
+    border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+  .sw.on{border-color:var(--ink);box-shadow:0 0 0 3px var(--accent-soft)}
+  .sw.custom{display:grid;place-items:center;background:var(--panel2);border:1px dashed var(--line2);color:var(--muted)}
+  .sw.custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .hint{color:var(--muted2);font-size:11.5px;margin-top:9px;line-height:1.45}
+  .fieldlabel{font-size:12px;color:var(--muted);margin:14px 0 5px}
+  .qtyrow{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+  .qtyrow>span{color:var(--muted);font-size:12.5px}
+  .stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel2)}
+  .stepper.dis{opacity:.4;pointer-events:none}
+  .stepbtn{width:40px;height:38px;border:0;background:var(--panel3);color:var(--ink);font-size:21px;cursor:pointer;line-height:1;display:grid;place-items:center}
+  .stepbtn:hover{background:var(--line)}
+  .stepper input{width:54px;text-align:center;border:0;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;margin:0;padding:0;-moz-appearance:textfield}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+  /* Mode nav */
+  .modes{display:flex;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:18px}
+  .modes button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;
+    color:var(--muted);padding:11px;border-radius:9px;cursor:pointer;font:inherit;font-size:14px;font-weight:600;transition:.15s}
+  .modes button svg{width:18px;height:18px}
+  .modes button.on{background:var(--accent);color:#221a08;box-shadow:0 4px 14px -4px rgba(236,171,75,.6)}
+  label.fld.blk{display:block;margin-top:11px}
+  label.fld.blk:first-of-type{margin-top:0}
+  .opt{color:var(--muted2);font-weight:400}
+  .drop.small{padding:12px;font-size:12.5px;color:var(--muted)}
+  .chips.five{grid-template-columns:repeat(3,1fr)}
+  .chips.five .chip b{font-size:13px}
+  .chips.five .chip small{font-size:10px}
+  .chips.subj{grid-template-columns:repeat(2,1fr)}
+  .chips.subj .chip{padding:9px 8px;text-align:left;display:flex;align-items:center;gap:8px}
+  .chips.scene{grid-template-columns:repeat(2,1fr)}
+  .chips.scene .chip{padding:10px 8px;font-size:12px;font-weight:600}
+  .chips.subj .chip .dot{width:12px;height:12px;border-radius:4px;flex:none}
+  .chips.subj .chip b{font-size:12px;font-weight:600}
+  .fmtbadge{background:var(--accent-soft);border:1px solid rgba(236,171,75,.3);color:var(--accent-2);
+    border-radius:9px;padding:9px 11px;font-size:12px;line-height:1.4}
+  .fmtbadge b{color:var(--ink)}
+  .presets{display:flex;gap:7px;margin-top:9px}
+  .presets button{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--muted);
+    border-radius:8px;padding:7px 4px;font:inherit;font-size:11.5px;cursor:pointer;transition:.15s}
+  .presets button:hover{border-color:var(--line2);color:var(--ink)}
+  .presets button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);font-weight:600}
+  .warn{margin-top:10px;background:rgba(229,103,92,.12);border:1px solid rgba(229,103,92,.35);
+    color:#f0a49d;border-radius:9px;padding:9px 11px;font-size:11.5px;line-height:1.45}
+  .nb-preview{display:grid;place-items:center;background:
+    conic-gradient(#22252d 25%, #1b1e25 0 50%, #22252d 0 75%, #1b1e25 0) 0 0/22px 22px;
+    border:1px solid var(--line);border-radius:12px;padding:16px;min-height:300px;overflow:auto}
+  .nb-scale{box-shadow:0 12px 34px -12px #000;border-radius:2px;overflow:hidden}
+
+  /* Sliders */
+  .slider{margin-top:6px}
+  .slider .lab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px}
+  input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:5px;background:var(--line2);outline:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:3px solid #221a08;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #221a08}
+
+  /* Buttons */
+  .btn{border:0;border-radius:11px;padding:12px 14px;font:inherit;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s;font-size:13.5px}
+  .btn svg{width:17px;height:17px}
+  .btn.primary{background:linear-gradient(145deg,var(--accent),var(--accent-d));color:#221a08;
+    box-shadow:0 6px 16px -6px rgba(236,171,75,.6)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:var(--panel3);color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--line2)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+  .btn.block{width:100%}
+
+  /* Stage */
+  .stage{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:1080px){.stage{grid-template-columns:1fr}}
+  .previewbox{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .cropwrap{position:relative;border-radius:12px;overflow:hidden;background:
+    conic-gradient(#22252d 25%, #1b1e25 0 50%, #22252d 0 75%, #1b1e25 0) 0 0/20px 20px;
+    box-shadow:0 10px 30px -12px #000, 0 0 0 1px var(--line)}
+  #crop{display:block;touch-action:none;cursor:grab}
+  #crop.grabbing{cursor:grabbing}
+  #crop.pick{cursor:crosshair}
+  .emptyimg{width:230px;height:300px;display:grid;place-items:center;text-align:center;color:var(--muted2);
+    background:var(--panel2);border:1.5px dashed var(--line);border-radius:12px;padding:20px}
+  .emptyimg svg{width:40px;height:40px;opacity:.5;margin-bottom:8px}
+  .toolbar{display:flex;gap:8px;align-items:center;width:100%;max-width:320px}
+  .toolbar .slider{flex:1;margin:0}
+  .icobtn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--ink);cursor:pointer;display:grid;place-items:center;flex:none}
+  .icobtn:hover{border-color:var(--line2)}
+  .icobtn svg{width:17px;height:17px}
+
+  .sheetbox{display:flex;flex-direction:column;gap:12px}
+  .sheetview{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;
+    display:grid;place-items:center;min-height:200px}
+  .sheetview img{max-width:100%;max-height:420px;border-radius:4px;
+    box-shadow:0 8px 24px -10px #000, 0 0 0 1px var(--line)}
+  .sheetview .ph{color:var(--muted2);text-align:center;font-size:12.5px;padding:30px 10px}
+
+  .facetoggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .switch{width:34px;height:19px;border-radius:20px;background:var(--line2);position:relative;transition:.15s;flex:none}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.15s}
+  .facetoggle.on .switch{background:var(--accent)}
+  .facetoggle.on .switch::after{left:17px}
+
+  .info-line{font-size:11.5px;color:var(--muted);text-align:center}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* Overlay busy */
+  .overlay{position:fixed;inset:0;background:rgba(10,11,14,.78);backdrop-filter:blur(3px);
+    display:none;place-items:center;z-index:50}
+  .overlay.show{display:grid}
+  .spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--line2);border-top-color:var(--accent);
+    animation:sp 1s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .overlay .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 30px;
+    text-align:center;max-width:320px}
+  .overlay .box b{display:block;margin-bottom:4px}
+  .overlay .box span{color:var(--muted);font-size:12.5px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--panel3);border:1px solid var(--line2);color:var(--ink);padding:11px 18px;border-radius:11px;
+    font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:60;box-shadow:0 10px 30px -10px #000}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{border-color:var(--danger)}
+  footer{margin-top:26px;text-align:center;color:var(--muted2);font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"></div>
+    <div class="brand">
+      <h1>BIMI Store</h1>
+      <p>Cetak pas foto rapi — berbagai ukuran</p>
+    </div>
+    <div class="badge">Cetak ukuran asli · 300 DPI</div>
+    <button class="btn primary instbtn" id="btnInstall" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v11m0 0l-4-4m4 4l4-4"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg>
+      Pasang
+    </button>
+  </header>
+
+  <nav class="modes">
+    <button data-v="pasfoto" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="11" r="3"/><path d="M7 20a5 5 0 0 1 10 0"/></svg>
+      Pas Foto
+    </button>
+    <button data-v="buku">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 3v18M11 8h5M11 12h5"/></svg>
+      Buku Tulis
+    </button>
+  </nav>
+
+  <div id="viewPasfoto">
+  <div class="grid">
+    <!-- KONTROL -->
+    <div class="col">
+      <div class="card">
+        <h3><span class="n">1</span> Foto</h3>
+        <div class="drop" id="drop">
+          <input type="file" id="file" accept="image/*" hidden>
+          <div id="dropEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15l-5-5L5 21"/><path d="M3 15V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+            <b>Pilih atau letakkan foto</b>
+            <small>JPG / PNG — sebaiknya wajah menghadap depan</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="n">2</span> Ukuran</h3>
+        <div class="chips" id="sizeChips"></div>
+        <div class="row mt" id="customSize" style="display:none">
+          <label class="fld">Lebar (cm)<input type="number" id="cw" min="1" max="20" step="0.1" value="4"></label>
+          <label class="fld">Tinggi (cm)<input type="number" id="ch" min="1" max="30" step="0.1" value="6"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="n">3</span> Latar belakang</h3>
+        <div class="swatches" id="swatches"></div>
+        <div class="seg subtle" id="removeSeg" style="margin-top:13px">
+          <button data-m="none" class="on">Tanpa hapus</button>
+          <button data-m="color">Pilih warna</button>
+          <button data-m="ai">Otomatis (AI)</button>
+        </div>
+        <div id="colorTools" style="display:none">
+          <p class="hint">Klik area latar pada foto untuk mengambil warnanya (boleh beberapa kali). Geser toleransi bila tepi kurang bersih.</p>
+          <div class="slider">
+            <div class="lab"><span>Toleransi</span><span id="tolVal">32</span></div>
+            <input type="range" id="tol" min="5" max="120" value="32">
+          </div>
+          <div class="slider">
+            <div class="lab"><span>Haluskan tepi</span><span id="featVal">1</span></div>
+            <input type="range" id="feat" min="0" max="4" value="1">
+          </div>
+          <button class="btn ghost block" id="resetRemove" style="margin-top:10px">Ulangi pilih</button>
+        </div>
+        <p class="hint" id="aiHint" style="display:none">Menghapus latar secara otomatis pakai AI. Butuh koneksi internet (mengunduh model saat pertama kali). Jika gagal, gunakan mode “Pilih warna”.</p>
+        <p class="hint" id="noneHint">Warna latar hanya muncul bila latar dihapus lebih dulu. Untuk foto berlatar polos, pakai “Pilih warna”.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="n">4</span> Lembar cetak</h3>
+        <label class="fld" style="display:block">Kertas
+          <select id="paper"></select>
+        </label>
+        <div class="seg subtle" id="orientSeg" style="margin-top:11px">
+          <button data-o="portrait" class="on">Potret</button>
+          <button data-o="landscape">Lanskap</button>
+        </div>
+        <div class="row mt" id="customPaper" style="display:none">
+          <label class="fld">Lebar (cm)<input type="number" id="pw" min="5" max="50" step="0.1" value="10"></label>
+          <label class="fld">Tinggi (cm)<input type="number" id="ph" min="5" max="60" step="0.1" value="15"></label>
+        </div>
+
+        <div class="fieldlabel">Posisi susunan</div>
+        <div class="seg subtle" id="alignSeg">
+          <button data-a="center" class="on">Tengah</button>
+          <button data-a="topleft">Pojok kiri atas</button>
+        </div>
+        <div class="slider" style="margin-top:14px">
+          <div class="lab"><span>Margin tepi</span><span id="marginVal">3 mm</span></div>
+          <input type="range" id="margin" min="0" max="15" step="0.1" value="3">
+        </div>
+        <div class="presets" id="marginPresets">
+          <button data-m="0.3">0,3 mm</button>
+          <button data-m="3">3 mm</button>
+          <button data-m="5">5 mm — aman</button>
+        </div>
+        <div class="warn" id="marginWarn" style="display:none"></div>
+        <div class="slider">
+          <div class="lab"><span>Jarak antar foto</span><span id="gapVal">2 mm</span></div>
+          <input type="range" id="gap" min="0" max="12" value="2">
+        </div>
+
+        <div class="row mt">
+          <label class="facetoggle" id="borderToggle"><span class="switch"></span> Bingkai putih tiap foto</label>
+        </div>
+        <div class="slider" id="borderWrap" style="display:none">
+          <div class="lab"><span>Tebal bingkai</span><span id="borderVal">2 mm</span></div>
+          <input type="range" id="borderW" min="1" max="6" value="2">
+        </div>
+
+        <div class="fieldlabel">Garis potong</div>
+        <div class="seg subtle" id="cutSeg">
+          <button data-c="none">Tidak</button>
+          <button data-c="line" class="on">Garis</button>
+          <button data-c="corner">Tanda sudut</button>
+        </div>
+
+        <div class="row mt">
+          <label class="facetoggle on" id="fillToggle"><span class="switch"></span> Penuhi lembar</label>
+        </div>
+        <div class="qtyrow" id="qtyRow">
+          <span>Jumlah foto</span>
+          <div class="stepper" id="stepper">
+            <button class="stepbtn" id="qtyMinus" aria-label="Kurangi">−</button>
+            <input type="number" id="qty" min="1" max="200" value="8">
+            <button class="stepbtn" id="qtyPlus" aria-label="Tambah">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="col">
+      <div class="card">
+        <div class="stage">
+          <div class="previewbox">
+            <div class="cropwrap" id="cropwrap">
+              <div class="emptyimg" id="emptyImg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a5.5 5.5 0 0 1 11 0"/></svg>
+                Pratinjau foto muncul di sini
+              </div>
+              <canvas id="crop" width="230" height="300" style="display:none"></canvas>
+            </div>
+            <div class="toolbar" id="zoomBar" style="display:none">
+              <button class="icobtn" id="zoomOut" title="Perkecil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+              <div class="slider"><input type="range" id="zoom" min="0" max="100" value="0"></div>
+              <button class="icobtn" id="zoomIn" title="Perbesar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <label class="facetoggle" id="guideToggle" style="display:none"><span class="switch"></span> Panduan posisi wajah</label>
+            <div class="info-line" id="dragHint" style="display:none">Seret foto untuk atur posisi</div>
+          </div>
+
+          <div class="sheetbox">
+            <div class="sheetview" id="sheetView">
+              <div class="ph">Susunan lembar akan tampil di sini setelah foto dipilih.</div>
+            </div>
+            <div class="info-line" id="sheetInfo"></div>
+            <div class="actions">
+              <button class="btn ghost" id="btnDownload" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                Unduh PNG
+              </button>
+              <button class="btn primary" id="btnPrint" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/></svg>
+                Cetak
+              </button>
+            </div>
+            <button class="btn ghost block" id="btnShare" disabled style="margin-top:10px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M12 3v13m0-13l-4 4m4-4l4 4"/></svg>
+              Kirim ke aplikasi cetak (USB)
+            </button>
+            <p class="hint" id="shareHint">Untuk printer USB seperti Epson L3210: ketuk tombol di atas, lalu pilih NokoPrint / PrinterShare.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /viewPasfoto -->
+
+  <div id="viewBuku" style="display:none">
+    <div class="grid">
+      <div class="col">
+        <div class="card">
+          <h3><span class="n">1</span> Identitas</h3>
+          <label class="fld blk">Nama siswa<input type="text" id="nbNama" placeholder="cth. Ahmad Fauzi"></label>
+          <label class="fld blk">Nama sekolah<input type="text" id="nbSekolah" placeholder="cth. SDN 001 Tepian Terap"></label>
+          <div class="row mt">
+            <label class="fld">Kelas<input type="text" id="nbKelas" placeholder="cth. IV"></label>
+            <label class="fld">Tahun ajaran<input type="text" id="nbTahun" placeholder="cth. 2025/2026"></label>
+          </div>
+          <div class="fieldlabel">Logo sekolah <span class="opt">(opsional)</span></div>
+          <div class="drop small" id="nbLogoDrop">
+            <input type="file" id="nbLogoFile" accept="image/*" hidden>
+            <span id="nbLogoText">Ketuk untuk pilih logo</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="n">2</span> Mata pelajaran</h3>
+          <div class="chips subj" id="nbSubjChips"></div>
+          <label class="fld blk">Atau ketik sendiri<input type="text" id="nbMapel" placeholder="cth. Matematika"></label>
+          <label class="fld blk">Isi sampul belakang
+            <select id="nbBack">
+              <option value="perkalian">Tabel Perkalian 1–10</option>
+              <option value="pancasila">Teks Pancasila</option>
+              <option value="abjad">Abjad A–Z</option>
+              <option value="angka">Mengenal Angka 1–20</option>
+              <option value="warna">Warna &amp; Bentuk</option>
+              <option value="olahraga">Olahraga &amp; Hidup Sehat</option>
+              <option value="nilai">Nilai-Nilai Luhur</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="card">
+          <h3><span class="n">3</span> Isi halaman</h3>
+          <div class="fmtbadge">Format: <b>F4 dilipat 2</b> · buku jadi ½ F4 (±16,5 × 21,5 cm)</div>
+          <div class="fieldlabel">Jenis garis</div>
+          <div class="chips five" id="nbLineChips"></div>
+          <div class="slider" id="nbSpacingWrap" style="margin-top:13px">
+            <div class="lab"><span>Jarak garis</span><span id="nbSpacingVal">8 mm</span></div>
+            <input type="range" id="nbSpacing" min="6" max="12" step="0.5" value="8">
+          </div>
+          <div class="row mt">
+            <label class="facetoggle on" id="nbMarginToggle"><span class="switch"></span> Garis tepi merah</label>
+          </div>
+          <div class="row mt">
+            <label class="facetoggle on" id="nbPagenumToggle"><span class="switch"></span> Nomor halaman</label>
+          </div>
+          <div class="row mt">
+            <label class="facetoggle on" id="nbDateToggle"><span class="switch"></span> Baris Hari / Tanggal</label>
+          </div>
+          <div class="row mt">
+            <label class="facetoggle on" id="nbOwnerToggle"><span class="switch"></span> Nama pemilik di kaki halaman</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="n">4</span> Tampilan sampul</h3>
+          <div class="fieldlabel">Gambar / latar sampul</div>
+          <div class="chips scene" id="nbScenes"></div>
+          <div class="drop small" id="nbCoverDrop" style="display:none;margin-top:10px">
+            <input type="file" id="nbCoverFile" accept="image/*" hidden>
+            <span id="nbCoverText">Ketuk untuk pilih gambar sampul sendiri</span>
+          </div>
+          <div class="fieldlabel">Warna aksen</div>
+          <div class="swatches" id="nbThemes"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="seg subtle" id="nbPreviewTab" style="margin-bottom:14px">
+            <button data-t="cover" class="on">Sampul</button>
+            <button data-t="page">Isi</button>
+          </div>
+          <div class="nb-preview" id="nbPreview"></div>
+          <div class="info-line" id="nbPreviewNote" style="margin-top:10px"></div>
+          <div class="qtyrow" style="margin-top:14px">
+            <span>Jumlah lembar isi (F4)</span>
+            <div class="stepper" id="nbStepper">
+              <button class="stepbtn" id="nbMinus" aria-label="Kurangi">−</button>
+              <input type="number" id="nbPages" min="1" max="80" value="10">
+              <button class="stepbtn" id="nbPlus" aria-label="Tambah">+</button>
+            </div>
+          </div>
+          <p class="hint" id="nbPagesHint"></p>
+          <div class="actions" style="margin-top:12px">
+            <button class="btn ghost" id="nbPrintCover">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 3v18"/></svg>
+              Cetak sampul
+            </button>
+            <button class="btn primary" id="nbPrint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/></svg>
+              Cetak buku
+            </button>
+          </div>
+          <p class="hint">“Cetak buku” = sampul + semua lembar isi jadi satu. “Cetak sampul” hanya lembar sampul (cocok pakai kertas tebal). Di dialog cetak aktifkan <b>Latar belakang grafis</b> dan margin <b>None</b>, lalu cetak bolak-balik → lipat di garis tengah → jilid.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Data foto tidak dikirim ke mana pun — semua diproses di perangkat Anda.</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="box">
+    <div class="spin"></div>
+    <b id="ovTitle">Memproses…</b>
+    <span id="ovText">Mohon tunggu</span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= State ================= */
+const CM = 2.54, DPI = 300, MAXDIM = 1600;
+const S = {
+  original: null,       // pristine downscaled Image
+  pristineData: null,   // ImageData of original (for color removal)
+  work: null,           // current working Image (may have transparency)
+  transparent: false,   // does work image have removed bg?
+  crop: null,           // {sx,sy,sw,sh} source rect
+  bg: '#E4002B',
+  size: {w:3, h:4},
+  paperIdx: 0,
+  method: 'none',
+  tol: 32, feat: 1,
+  samples: [],
+  fill: true, qty: 8, cutStyle:'line', guide: false,
+  orient:'portrait', customPaper:{w:10, h:15}, margin:3, gap:2, border:false, borderW:2, align:'center',
+  zoom: 0
+};
+
+const SIZES = [
+  {w:2, h:3, label:'2×3', note:'cm'},
+  {w:3, h:4, label:'3×4', note:'cm'},
+  {w:4, h:6, label:'4×6', note:'cm'},
+  {w:0, h:0, label:'Kustom', note:'atur sendiri', custom:true}
+];
+const PAPERS = [
+  {w:10.2, h:15.2, label:'4R (10×15 cm)'},
+  {w:10,   h:15,   label:'10 × 15 cm'},
+  {w:21,   h:29.7, label:'A4'},
+  {w:10.5, h:14.8, label:'A6'},
+  {w:8.9,  h:12.7, label:'3R (9×13 cm)'},
+  {custom:true, label:'Kustom…'}
+];
+const COLORS = [
+  {c:'#E4002B', n:'Merah'},
+  {c:'#B01E28', n:'Merah tua'},
+  {c:'#0F52BA', n:'Biru'},
+  {c:'#2E7DD1', n:'Biru muda'},
+  {c:'#FFFFFF', n:'Putih'},
+  {c:'#C9CDD4', n:'Abu'}
+];
+
+/* ================= Elements ================= */
+const $ = id => document.getElementById(id);
+const cropC = $('crop'), cx = cropC.getContext('2d');
+let CW = 230, CH = 300, DPR = Math.min(window.devicePixelRatio||1, 2);
+
+/* ================= Init UI ================= */
+function buildSizeChips(){
+  const el = $('sizeChips'); el.innerHTML='';
+  SIZES.forEach((s,i)=>{
+    const b=document.createElement('button'); b.className='chip'+((S.size.w===s.w&&S.size.h===s.h&&!s.custom)||(s.custom&&isCustomActive())?' on':'');
+    b.innerHTML = `<b>${s.label}</b><small>${s.note}</small>`;
+    b.onclick=()=>selectSize(i);
+    el.appendChild(b);
+  });
+}
+function isCustomActive(){ return !SIZES.some(s=>!s.custom && s.w===S.size.w && s.h===S.size.h); }
+function selectSize(i){
+  const s=SIZES[i];
+  if(s.custom){
+    $('customSize').style.display='flex';
+    S.size={w:parseFloat($('cw').value)||4, h:parseFloat($('ch').value)||6};
+  } else {
+    $('customSize').style.display='none';
+    S.size={w:s.w, h:s.h};
+  }
+  buildSizeChips(); onAspectChange(); save();
+}
+$('cw').oninput=$('ch').oninput=()=>{
+  if($('customSize').style.display!=='none'){
+    S.size={w:Math.max(1,parseFloat($('cw').value)||1), h:Math.max(1,parseFloat($('ch').value)||1)};
+    onAspectChange(); save();
+  }
+};
+
+function buildSwatches(){
+  const el=$('swatches'); el.innerHTML='';
+  COLORS.forEach(o=>{
+    const d=document.createElement('div'); d.className='sw'+(S.bg.toUpperCase()===o.c.toUpperCase()?' on':'');
+    d.style.background=o.c; d.title=o.n;
+    d.onclick=()=>{S.bg=o.c; buildSwatches(); redraw(); scheduleSheet(); save();};
+    el.appendChild(d);
+  });
+  const cu=document.createElement('div'); cu.className='sw custom'; cu.title='Warna lain';
+  cu.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><input type="color" value="'+S.bg+'">';
+  cu.querySelector('input').oninput=e=>{S.bg=e.target.value; buildSwatches(); redraw(); scheduleSheet(); save();};
+  el.appendChild(cu);
+}
+
+function buildPaper(){
+  const sel=$('paper'); sel.innerHTML='';
+  PAPERS.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=p.label; sel.appendChild(o); });
+  sel.value=S.paperIdx;
+  sel.onchange=()=>{S.paperIdx=+sel.value; $('customPaper').style.display=PAPERS[S.paperIdx].custom?'flex':'none'; scheduleSheet(); save();};
+}
+function getPaper(){
+  const p=PAPERS[S.paperIdx];
+  let w,h,label;
+  if(p.custom){ w=S.customPaper.w; h=S.customPaper.h; label='Kustom'; }
+  else { w=p.w; h=p.h; label=p.label.replace(/\s*\(.*/,''); }
+  if(S.orient==='landscape'){ const t=w; w=h; h=t; }
+  return {w,h,label};
+}
+
+/* Removal method segmented */
+$('removeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('removeSeg').children].forEach(x=>x.classList.toggle('on', x===b));
+  S.method=b.dataset.m;
+  $('colorTools').style.display = S.method==='color'?'block':'none';
+  $('aiHint').style.display = S.method==='ai'?'block':'none';
+  $('noneHint').style.display = S.method==='none'?'block':'none';
+  cropC.classList.toggle('pick', S.method==='color');
+  if(S.method==='none'){ resetToOriginal(); }
+  if(S.method==='color'){ S.samples=[]; resetToOriginal(); toast('Klik area latar pada foto'); }
+  if(S.method==='ai'){ runAI(); }
+  save();
+});
+$('tol').oninput=e=>{S.tol=+e.target.value; $('tolVal').textContent=S.tol; if(S.samples.length) applyColorRemoval();};
+$('feat').oninput=e=>{S.feat=+e.target.value; $('featVal').textContent=S.feat; if(S.samples.length) applyColorRemoval();};
+$('resetRemove').onclick=()=>{S.samples=[]; resetToOriginal(); toast('Silakan pilih ulang area latar');};
+
+/* Toggles */
+function bindToggle(elId, key, after){
+  const el=$(elId);
+  el.onclick=()=>{S[key]=!S[key]; el.classList.toggle('on',S[key]); after&&after(); save();};
+}
+bindToggle('fillToggle','fill',()=>{$('stepper').classList.toggle('dis',S.fill); scheduleSheet();});
+bindToggle('guideToggle','guide',redraw);
+$('qty').oninput=()=>{S.qty=Math.max(1,+$('qty').value||1); scheduleSheet(); save();};
+$('qtyMinus').onclick=()=>{ if(S.fill) return; S.qty=Math.max(1,S.qty-1); $('qty').value=S.qty; scheduleSheet(); save(); };
+$('qtyPlus').onclick=()=>{ if(S.fill) return; S.qty=S.qty+1; $('qty').value=S.qty; scheduleSheet(); save(); };
+
+/* Sheet-layout controls */
+$('orientSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('orientSeg').children].forEach(x=>x.classList.toggle('on',x===b));
+  S.orient=b.dataset.o; scheduleSheet(); save();
+});
+$('pw').oninput=$('ph').oninput=()=>{
+  S.customPaper={w:Math.max(3,parseFloat($('pw').value)||10), h:Math.max(3,parseFloat($('ph').value)||15)};
+  if(PAPERS[S.paperIdx].custom) scheduleSheet(); save();
+};
+function marginUI(){
+  const v=Math.round(S.margin*10)/10;
+  $('marginVal').textContent=v+' mm';
+  [...$('marginPresets').children].forEach(b=>b.classList.toggle('on', Math.abs(+b.dataset.m - v) < 0.05));
+  const w=$('marginWarn');
+  if(v < 3){
+    w.style.display='block';
+    w.innerHTML='Margin '+v+' mm lebih rapat dari batas cetak printer biasa (±3–5 mm). Tepi foto bisa terpotong, atau printer mengecilkan susunan sehingga ukuran tidak presisi. Aman bila printer mendukung <b>borderless</b>; jika tidak, pakai 5 mm.';
+  } else { w.style.display='none'; }
+}
+$('margin').oninput=e=>{S.margin=+e.target.value; marginUI(); scheduleSheet(); save();};
+$('marginPresets').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.margin=+b.dataset.m; $('margin').value=S.margin; marginUI(); scheduleSheet(); save();
+});
+$('alignSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('alignSeg').children].forEach(x=>x.classList.toggle('on',x===b));
+  S.align=b.dataset.a; scheduleSheet(); save();
+});
+$('gap').oninput=e=>{S.gap=+e.target.value; $('gapVal').textContent=S.gap+' mm'; scheduleSheet(); save();};
+$('borderToggle').onclick=()=>{
+  S.border=!S.border; $('borderToggle').classList.toggle('on',S.border);
+  $('borderWrap').style.display=S.border?'block':'none'; scheduleSheet(); save();
+};
+$('borderW').oninput=e=>{S.borderW=+e.target.value; $('borderVal').textContent=S.borderW+' mm'; scheduleSheet(); save();};
+$('cutSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...$('cutSeg').children].forEach(x=>x.classList.toggle('on',x===b));
+  S.cutStyle=b.dataset.c; scheduleSheet(); save();
+});
+
+/* ================= File load ================= */
+const drop=$('drop'), fileInput=$('file');
+drop.onclick=()=>fileInput.click();
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('hot');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('hot'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('hot');
+  if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);});
+fileInput.onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
+
+function loadFile(f){
+  if(!f.type.startsWith('image/')){ toast('File harus berupa gambar',true); return; }
+  const r=new FileReader();
+  r.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{ setupImage(img, f.name); };
+    img.onerror=()=>toast('Gagal membaca gambar',true);
+    img.src=r.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function setupImage(img, name){
+  // downscale to MAXDIM
+  let w=img.width, h=img.height;
+  const sc=Math.min(1, MAXDIM/Math.max(w,h));
+  w=Math.round(w*sc); h=Math.round(h*sc);
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const g=c.getContext('2d'); g.drawImage(img,0,0,w,h);
+  S.pristineData=g.getImageData(0,0,w,h);
+  const base=new Image();
+  base.onload=()=>{
+    S.original=base; S.work=base; S.transparent=false; S.samples=[];
+    // reset method to none on new image
+    S.method='none';
+    [...$('removeSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.m==='none'));
+    $('colorTools').style.display='none'; $('aiHint').style.display='none'; $('noneHint').style.display='block';
+    cropC.classList.remove('pick');
+    initCrop();
+    showEditor(name, base);
+    redraw(); scheduleSheet();
+  };
+  base.src=c.toDataURL('image/png');
+}
+
+function showEditor(name, img){
+  $('emptyImg').style.display='none';
+  cropC.style.display='block';
+  $('zoomBar').style.display='flex';
+  $('guideToggle').style.display='flex';
+  $('dragHint').style.display='block';
+  $('btnPrint').disabled=false; $('btnDownload').disabled=false; $('btnShare').disabled=false;
+  // thumb in drop
+  drop.classList.add('has');
+  $('dropEmpty').style.display='none';
+  let t=drop.querySelector('.thumb');
+  if(!t){ t=document.createElement('div'); t.className='thumb'; drop.appendChild(t); }
+  t.innerHTML=`<img src="${img.src}"><div class="info"><b>${name||'foto.jpg'}</b><span>${img.naturalWidth}×${img.naturalHeight} px</span></div><span class="rep">Ganti</span>`;
+  t.querySelector('.rep').onclick=e=>{e.stopPropagation();fileInput.click();};
+}
+
+/* ================= Crop geometry ================= */
+function aspect(){ return S.size.w/S.size.h; }
+
+function coverCrop(img,a){
+  const ia=img.width/img.height; let sw,sh;
+  if(ia>a){ sh=img.height; sw=sh*a; } else { sw=img.width; sh=sw/a; }
+  return clamp({sx:(img.width-sw)/2, sy:(img.height-sh)/2, sw, sh}, img);
+}
+function clamp(c,img){
+  const im=img||S.work;
+  c.sw=Math.min(c.sw, im.width); c.sh=Math.min(c.sh, im.height);
+  c.sx=Math.max(0, Math.min(c.sx, im.width-c.sw));
+  c.sy=Math.max(0, Math.min(c.sy, im.height-c.sh));
+  return c;
+}
+function initCrop(){
+  S.crop=coverCrop(S.work, aspect());
+  setupCanvasSize();
+  S.zoom=0; $('zoom').value=0;
+}
+function setupCanvasSize(){
+  const a=aspect();
+  const maxH=340, maxW=300;
+  let dh=maxH, dw=dh*a;
+  if(dw>maxW){ dw=maxW; dh=dw/a; }
+  CW=Math.round(dw); CH=Math.round(dh);
+  cropC.style.width=CW+'px'; cropC.style.height=CH+'px';
+  cropC.width=Math.round(CW*DPR); cropC.height=Math.round(CH*DPR);
+}
+function onAspectChange(){
+  if(!S.work) return;
+  const c=S.crop, cxp=c.sx+c.sw/2, cyp=c.sy+c.sh/2, a=aspect();
+  let sh=c.sh, sw=sh*a;
+  if(sw>S.work.width){ sw=S.work.width; sh=sw/a; }
+  if(sh>S.work.height){ sh=S.work.height; sw=sh*a; }
+  S.crop=clamp({sx:cxp-sw/2, sy:cyp-sh/2, sw, sh});
+  setupCanvasSize();
+  redraw(); scheduleSheet();
+}
+
+/* zoom: 0..100 maps min..max sw */
+function applyZoom(v){
+  if(!S.work) return;
+  S.zoom=v;
+  const c=S.crop, a=aspect(), cxp=c.sx+c.sw/2, cyp=c.sy+c.sh/2;
+  const maxSW = Math.min(S.work.width, S.work.height*a);
+  const minSW = Math.max(60, maxSW*0.28);
+  const sw = maxSW - (maxSW-minSW)*(v/100);
+  const sh = sw/a;
+  S.crop=clamp({sx:cxp-sw/2, sy:cyp-sh/2, sw, sh});
+  redraw(); scheduleSheet();
+}
+$('zoom').oninput=e=>applyZoom(+e.target.value);
+$('zoomIn').onclick=()=>{ $('zoom').value=Math.min(100,+$('zoom').value+8); applyZoom(+$('zoom').value); };
+$('zoomOut').onclick=()=>{ $('zoom').value=Math.max(0,+$('zoom').value-8); applyZoom(+$('zoom').value); };
+
+/* drag / pan or pick color */
+let dragging=false, lastX=0, lastY=0;
+function evtToImg(e){
+  const r=cropC.getBoundingClientRect();
+  const px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+  return { ix: S.crop.sx + px*S.crop.sw, iy: S.crop.sy + py*S.crop.sh };
+}
+cropC.addEventListener('pointerdown',e=>{
+  if(!S.work) return;
+  if(S.method==='color'){ pickColor(e); return; }
+  dragging=true; cropC.classList.add('grabbing'); cropC.setPointerCapture(e.pointerId);
+  lastX=e.clientX; lastY=e.clientY;
+});
+cropC.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const r=cropC.getBoundingClientRect();
+  const dx=(e.clientX-lastX)/r.width*S.crop.sw;
+  const dy=(e.clientY-lastY)/r.height*S.crop.sh;
+  S.crop=clamp({...S.crop, sx:S.crop.sx-dx, sy:S.crop.sy-dy});
+  lastX=e.clientX; lastY=e.clientY; redraw();
+});
+cropC.addEventListener('pointerup',()=>{ if(dragging){dragging=false;cropC.classList.remove('grabbing');scheduleSheet();} });
+cropC.addEventListener('pointercancel',()=>{dragging=false;cropC.classList.remove('grabbing');});
+cropC.addEventListener('wheel',e=>{
+  if(!S.work||S.method==='color') return; e.preventDefault();
+  $('zoom').value=Math.max(0,Math.min(100,+$('zoom').value + (e.deltaY<0?6:-6)));
+  applyZoom(+$('zoom').value);
+},{passive:false});
+
+/* ================= Draw preview ================= */
+function redraw(){
+  if(!S.work) return;
+  const w=cropC.width, h=cropC.height;
+  cx.setTransform(1,0,0,1,0,0); cx.clearRect(0,0,w,h);
+  // background color (visible where transparent / letterbox)
+  cx.fillStyle=S.bg; cx.fillRect(0,0,w,h);
+  const c=S.crop;
+  cx.imageSmoothingQuality='high';
+  cx.drawImage(S.work, c.sx,c.sy,c.sw,c.sh, 0,0,w,h);
+  if(S.guide) drawGuide(w,h);
+}
+function drawGuide(w,h){
+  cx.save();
+  cx.strokeStyle='rgba(255,255,255,.55)'; cx.lineWidth=1*DPR; cx.setLineDash([6*DPR,5*DPR]);
+  // head oval zone
+  cx.beginPath();
+  cx.ellipse(w/2, h*0.42, w*0.24, h*0.27, 0, 0, Math.PI*2); cx.stroke();
+  // chin & crown lines
+  cx.beginPath(); cx.moveTo(w*0.12,h*0.12); cx.lineTo(w*0.88,h*0.12); cx.stroke();
+  cx.beginPath(); cx.moveTo(w*0.12,h*0.70); cx.lineTo(w*0.88,h*0.70); cx.stroke();
+  cx.restore();
+}
+
+/* ================= Color-based removal ================= */
+function resetToOriginal(){
+  if(!S.original) return;
+  S.work=S.original; S.transparent=false;
+  S.crop=clamp(S.crop||coverCrop(S.original,aspect()), S.original);
+  redraw(); scheduleSheet();
+}
+function pickColor(e){
+  const {ix,iy}=evtToImg(e);
+  const d=S.pristineData, x=Math.round(ix), y=Math.round(iy);
+  if(x<0||y<0||x>=d.width||y>=d.height) return;
+  const i=(y*d.width+x)*4;
+  S.samples.push({r:d.data[i],g:d.data[i+1],b:d.data[i+2]});
+  applyColorRemoval();
+}
+function applyColorRemoval(){
+  if(!S.pristineData||!S.samples.length) return;
+  const src=S.pristineData, w=src.width, h=src.height;
+  const out=new ImageData(new Uint8ClampedArray(src.data), w, h);
+  const t=S.tol, t2=t*t;
+  const d=out.data;
+  for(let p=0;p<d.length;p+=4){
+    const r=d[p],g=d[p+1],b=d[p+2]; let hit=false;
+    for(const s of S.samples){
+      const dr=r-s.r,dg=g-s.g,db=b-s.b;
+      if(dr*dr+dg*dg+db*db < t2){ hit=true; break; }
+    }
+    if(hit) d[p+3]=0;
+  }
+  // feather: simple alpha erode/blur passes on edges
+  if(S.feat>0) featherAlpha(out, S.feat);
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  c.getContext('2d').putImageData(out,0,0);
+  const img=new Image();
+  img.onload=()=>{ S.work=img; S.transparent=true; redraw(); scheduleSheet(); };
+  img.src=c.toDataURL('image/png');
+}
+function featherAlpha(imgData, passes){
+  const w=imgData.width,h=imgData.height,d=imgData.data;
+  for(let k=0;k<passes;k++){
+    const a=new Uint8ClampedArray(w*h);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){a[y*w+x]=d[(y*w+x)*4+3];}
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      const idx=y*w+x;
+      const avg=(a[idx-1]+a[idx+1]+a[idx-w]+a[idx+w]+a[idx])/5;
+      d[idx*4+3]=avg;
+    }
+  }
+}
+
+/* ================= AI removal ================= */
+let imglyMod=null;
+async function runAI(){
+  if(!S.original){ toast('Pilih foto dulu',true); return; }
+  busy('Menghapus latar…','Mengunduh model AI (sekali saja)');
+  try{
+    if(!imglyMod){
+      imglyMod=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
+    }
+    const blob=await imglyMod.removeBackground(S.original.src,{
+      progress:(key,cur,total)=>{
+        if(String(key).includes('fetch')) $('ovText').textContent='Mengunduh model… '+Math.round(cur/total*100||0)+'%';
+        else $('ovText').textContent='Memproses gambar…';
+      },
+      output:{format:'image/png'}
+    });
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{ S.work=img; S.transparent=true; unbusy(); redraw(); scheduleSheet(); toast('Latar berhasil dihapus'); };
+    img.onerror=()=>{ unbusy(); toast('Gagal memuat hasil',true); };
+    img.src=url;
+  }catch(err){
+    console.error(err); unbusy();
+    toast('AI gagal — coba mode “Pilih warna” (butuh internet)',true);
+    // fallback to none
+    [...$('removeSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.m==='none'));
+    S.method='none'; $('aiHint').style.display='none'; $('noneHint').style.display='block';
+    resetToOriginal();
+  }
+}
+
+/* ================= Sheet build ================= */
+let sheetTimer=null;
+function scheduleSheet(){ clearTimeout(sheetTimer); sheetTimer=setTimeout(()=>buildSheet(130,true),180); }
+
+function renderCell(w,h,bw){
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const g=c.getContext('2d'); g.imageSmoothingQuality='high';
+  const cr=S.crop;
+  if(S.border && bw>0){
+    g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
+    g.fillStyle=S.bg; g.fillRect(bw,bw,w-2*bw,h-2*bw);
+    g.drawImage(S.work, cr.sx,cr.sy,cr.sw,cr.sh, bw,bw,w-2*bw,h-2*bw);
+  } else {
+    g.fillStyle=S.bg; g.fillRect(0,0,w,h);
+    g.drawImage(S.work, cr.sx,cr.sy,cr.sw,cr.sh, 0,0,w,h);
+  }
+  return c;
+}
+function cornerMarks(g,x,y,w,h,t){
+  g.beginPath();
+  g.moveTo(x,y+t); g.lineTo(x,y); g.lineTo(x+t,y);
+  g.moveTo(x+w-t,y); g.lineTo(x+w,y); g.lineTo(x+w,y+t);
+  g.moveTo(x,y+h-t); g.lineTo(x,y+h); g.lineTo(x+t,y+h);
+  g.moveTo(x+w-t,y+h); g.lineTo(x+w,y+h); g.lineTo(x+w,y+h-t);
+  g.stroke();
+}
+function buildSheet(dpi, preview){
+  if(!S.work) return null;
+  const paper=getPaper();
+  const pw=Math.round(paper.w/CM*dpi), ph=Math.round(paper.h/CM*dpi);
+  const cw=Math.round(S.size.w/CM*dpi), chh=Math.round(S.size.h/CM*dpi);
+  const margin=S.margin/10/CM*dpi;
+  const gap=Math.round(S.gap/10/CM*dpi);
+  const bw=S.border? Math.max(1,Math.round(S.borderW/10/CM*dpi)) : 0;
+  let cols=Math.max(1,Math.floor((pw-2*margin+gap)/(cw+gap)));
+  let rows=Math.max(1,Math.floor((ph-2*margin+gap)/(chh+gap)));
+  const maxCells=cols*rows;
+  if(S.fill){ $('qty').value=maxCells; }
+  else if(S.qty>maxCells){ S.qty=maxCells; $('qty').value=maxCells; }
+  const count=S.fill? maxCells : Math.min(S.qty, maxCells);
+
+  const canvas=document.createElement('canvas'); canvas.width=pw; canvas.height=ph;
+  const g=canvas.getContext('2d');
+  g.fillStyle='#ffffff'; g.fillRect(0,0,pw,ph);
+
+  const contentW=cols*cw+(cols-1)*gap, contentH=rows*chh+(rows-1)*gap;
+  const startX = S.align==='topleft' ? Math.round(margin) : Math.round((pw-contentW)/2);
+  const startY = S.align==='topleft' ? Math.round(margin) : Math.round((ph-contentH)/2);
+
+  const cell=renderCell(cw,chh,bw);
+  const lw=Math.max(1,Math.round(dpi/600));
+  g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+  let n=0;
+  for(let row=0; row<rows && n<count; row++){
+    for(let col=0; col<cols && n<count; col++){
+      const x=Math.round(startX+col*(cw+gap)), y=Math.round(startY+row*(chh+gap));
+      g.drawImage(cell,x,y);
+      if(S.cutStyle==='line'){
+        g.strokeStyle='rgba(0,0,0,.28)'; g.lineWidth=lw;
+        g.strokeRect(x+lw/2,y+lw/2,cw-lw,chh-lw);
+      } else if(S.cutStyle==='corner'){
+        g.strokeStyle='rgba(0,0,0,.45)'; g.lineWidth=lw;
+        cornerMarks(g,x,y,cw,chh,Math.round(Math.min(cw,chh)*0.12));
+      }
+      n++;
+    }
+  }
+  if(preview){
+    $('sheetView').innerHTML='';
+    const img=new Image(); img.src=canvas.toDataURL('image/png');
+    $('sheetView').appendChild(img);
+    const lbl=paper.label+(S.orient==='landscape'?' (lanskap)':'');
+    $('sheetInfo').textContent=`${lbl} · ${S.size.w}×${S.size.h} cm · ${count} foto (maks ${maxCells}/lembar)`;
+  }
+  return {canvas, paper, count};
+}
+
+/* ================= Export ================= */
+$('btnDownload').onclick=()=>{
+  const r=buildSheet(DPI,false); if(!r) return;
+  r.canvas.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download=`pasfoto_${S.size.w}x${S.size.h}_${r.paper.label.replace(/[^0-9A-Za-z]/g,'')}.png`;
+    a.click(); toast('PNG diunduh');
+  },'image/png');
+};
+/* ================= Print helper (iframe — tahan pop-up blocker) ================= */
+function printDoc(html){
+  const old=document.getElementById('printFrame'); if(old) old.remove();
+  const f=document.createElement('iframe');
+  f.id='printFrame';
+  f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+  document.body.appendChild(f);
+  let done=false;
+  const go=()=>{
+    if(done) return; done=true;
+    try{ f.contentWindow.focus(); f.contentWindow.print(); }
+    catch(e){ toast('Cetak gagal — pakai "Unduh PNG" lalu cetak dari galeri',true); }
+  };
+  try{
+    const d=f.contentWindow.document;
+    d.open(); d.write(html); d.close();
+    const imgs=[...d.images];
+    if(imgs.length){
+      let n=0; const chk=()=>{ if(++n>=imgs.length) setTimeout(go,350); };
+      imgs.forEach(im=> im.complete ? chk() : (im.onload=chk, im.onerror=chk));
+      setTimeout(go,4000);
+    } else setTimeout(go,350);
+  }catch(e){ toast('Cetak gagal — pakai "Unduh PNG" lalu cetak dari galeri',true); }
+}
+
+$('btnShare').onclick=()=>{
+  const r=buildSheet(DPI,false); if(!r) return;
+  const name=`pasfoto_${S.size.w}x${S.size.h}.png`;
+  r.canvas.toBlob(async b=>{
+    if(!b) return;
+    const file=new File([b], name, {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file], title:'Lembar Pas Foto'});
+      }catch(err){ if(err && err.name!=='AbortError') toast('Gagal mengirim',true); }
+    } else {
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b); a.download=name; a.click();
+      toast('Perangkat tak mendukung kirim langsung — file diunduh');
+    }
+  },'image/png');
+};
+$('btnPrint').onclick=()=>{
+  const r=buildSheet(DPI,false); if(!r) return;
+  const url=r.canvas.toDataURL('image/png');
+  const p=r.paper;
+  printDoc(`<!DOCTYPE html><html><head><title>Cetak Pas Foto</title>
+    <style>@page{size:${p.w}cm ${p.h}cm;margin:0}
+    html,body{margin:0;padding:0;background:#fff}
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+    img{width:${p.w}cm;height:${p.h}cm;display:block}</style></head>
+    <body><img src="${url}"></body></html>`);
+};
+
+/* ================= Overlay / toast ================= */
+function busy(t,s){ $('ovTitle').textContent=t; $('ovText').textContent=s||''; $('overlay').classList.add('show'); }
+function unbusy(){ $('overlay').classList.remove('show'); }
+let toastT=null;
+function toast(msg,err){
+  const el=$('toast'); el.textContent=msg; el.className='toast show'+(err?' err':'');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.className='toast'+(err?' err':''),2600);
+}
+
+/* ================= Persist settings ================= */
+function save(){
+  try{
+    localStorage.setItem('studioPasFoto', JSON.stringify({
+      bg:S.bg, size:S.size, paperIdx:S.paperIdx, method:S.method,
+      tol:S.tol, feat:S.feat, fill:S.fill, qty:S.qty, cutStyle:S.cutStyle,
+      orient:S.orient, customPaper:S.customPaper, margin:S.margin, gap:S.gap, border:S.border, borderW:S.borderW, align:S.align
+    }));
+  }catch(e){}
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('studioPasFoto')||'{}');
+    if(d.bg) S.bg=d.bg;
+    if(d.size) S.size=d.size;
+    if(typeof d.paperIdx==='number') S.paperIdx=d.paperIdx;
+    if(typeof d.tol==='number'){S.tol=d.tol; $('tol').value=d.tol; $('tolVal').textContent=d.tol;}
+    if(typeof d.feat==='number'){S.feat=d.feat; $('feat').value=d.feat; $('featVal').textContent=d.feat;}
+    if(typeof d.fill==='boolean'){S.fill=d.fill; $('fillToggle').classList.toggle('on',d.fill); $('stepper').classList.toggle('dis',d.fill);}
+    if(typeof d.qty==='number'){S.qty=d.qty; $('qty').value=d.qty;}
+    if(d.cutStyle){S.cutStyle=d.cutStyle;}
+    if(d.orient){S.orient=d.orient;}
+    if(d.customPaper){S.customPaper=d.customPaper; $('pw').value=d.customPaper.w; $('ph').value=d.customPaper.h;}
+    if(typeof d.margin==='number'){S.margin=d.margin; $('margin').value=d.margin;}
+    if(d.align){S.align=d.align;}
+    if(typeof d.gap==='number'){S.gap=d.gap; $('gap').value=d.gap; $('gapVal').textContent=d.gap+' mm';}
+    if(typeof d.border==='boolean'){S.border=d.border; $('borderToggle').classList.toggle('on',d.border); $('borderWrap').style.display=d.border?'block':'none';}
+    if(typeof d.borderW==='number'){S.borderW=d.borderW; $('borderW').value=d.borderW; $('borderVal').textContent=d.borderW+' mm';}
+  }catch(e){}
+}
+
+/* ================= Buku Tulis ================= */
+const F4={w:33, h:21.5}, HALF=16.5, PAGEH=21.5;
+const MM = 96/25.4;
+const NB = {
+  line:'ruled', spacing:8, margin:true, pagenum:true, dateline:true, ownername:true,
+  theme:'#2D6FB8', sheets:10, logo:null, tab:'cover', motif:'math', back:'perkalian', scene:'langit', coverImg:null,
+  f:{ nama:'Nur Faiz Al Ayubbi', sekolah:'', kelas:'', mapel:'Matematika', tahun:'' }
+};
+const NB_LINES=[
+  {v:'ruled',  b:'Garis',      s:'biasa'},
+  {v:'grid',   b:'Kotak',      s:'matematika'},
+  {v:'dotted', b:'Titik',      s:'dot grid'},
+  {v:'fine',   b:'Garis halus',s:'menulis'},
+  {v:'blank',  b:'Polos',      s:'gambar'}
+];
+const NB_SUBJECTS=[
+  {n:'Seni Rupa',            c:'#E8663D', m:'art',   b:'warna'},
+  {n:'PJOK',                 c:'#2E9B5B', m:'ball',  b:'olahraga'},
+  {n:'Bahasa Kutai',         c:'#C0392B', m:'chat',  b:'angka'},
+  {n:'Matematika',           c:'#2D6FB8', m:'math',  b:'perkalian'},
+  {n:'Bahasa Indonesia',     c:'#8E44AD', m:'book',  b:'abjad'},
+  {n:'Agama',                c:'#1F8A70', m:'star',  b:'nilai'},
+  {n:'Pendidikan Pancasila', c:'#C79A17', m:'star5', b:'pancasila'}
+];
+const NB_THEMES=['#2D6FB8','#E8663D','#2E9B5B','#C0392B','#8E44AD','#1F8A70','#C79A17','#2C3E50'];
+const NB_SCENES=[
+  {v:'langit', n:'Langit & Pelangi'},
+  {v:'malam',  n:'Bintang & Bulan'},
+  {v:'laut',   n:'Bawah Laut'},
+  {v:'taman',  n:'Taman Bunga'},
+  {v:'polka',  n:'Polkadot Ceria'},
+  {v:'custom', n:'Gambar Sendiri'}
+];
+
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function el(cls){ const d=document.createElement('div'); d.className=cls; return d; }
+function downscaleDataURL(img,max){
+  let w=img.width,h=img.height; const sc=Math.min(1,max/Math.max(w,h));
+  w=Math.round(w*sc); h=Math.round(h*sc);
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  c.getContext('2d').drawImage(img,0,0,w,h);
+  return c.toDataURL('image/jpeg',0.85);
+}
+
+const NB_CSS = `
+.bk-sheet{box-sizing:border-box;background:#fff;display:flex;position:relative;font-family:'Fredoka','Space Grotesk',Inter,sans-serif;color:#243244;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bk-sheet *{box-sizing:border-box}
+.bk-fold{position:absolute;top:0;bottom:0;left:50%;border-left:.3mm dashed #b9c2cf}
+.bk-half{width:${HALF}cm;height:${PAGEH}cm;overflow:hidden;position:relative}
+.bk-front{background:transparent}
+.bk-cover-sheet .bk-half{position:relative;z-index:1;background:transparent}
+.bk-decor{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bk-fold{z-index:2}
+.bk-coverimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.bk-school-top{position:absolute;top:6mm;left:8mm;right:8mm;text-align:center;font-family:Inter;font-weight:700;font-size:9pt;color:#3a5670;letter-spacing:.3pt;text-shadow:0 0 1.6mm rgba(255,255,255,.9),0 0 1.6mm rgba(255,255,255,.9)}
+.bk-cloud{position:absolute;background:#fff;border-radius:50%;box-shadow:0 1mm 2mm rgba(0,0,0,.05)}
+.bk-card{position:absolute;top:42mm;left:13mm;right:13mm;background:rgba(255,255,255,.96);border-radius:6mm;
+  padding:8mm 6mm;text-align:center;box-shadow:0 4mm 10mm rgba(30,60,90,.18);border:.6mm solid #fff}
+.bk-pill{display:inline-block;background:var(--tc);color:#fff;font-family:Inter;font-weight:700;font-size:8pt;
+  letter-spacing:2pt;padding:2mm 5mm;border-radius:10mm}
+.bk-motif{margin:5mm auto 2mm;width:24mm;height:24mm;color:var(--tc)}
+.bk-motif svg{width:100%;height:100%}
+.bk-subject{font-size:25pt;font-weight:700;line-height:1.03;color:var(--tc)}
+.bk-namebar{position:absolute;left:12mm;right:12mm;bottom:46mm;background:var(--tc);color:#fff;border-radius:4mm;
+  padding:3.5mm 6mm;text-align:center;box-shadow:0 3mm 8mm rgba(0,0,0,.2)}
+.bk-namebar span{display:block;font-family:Inter;font-size:7pt;opacity:.85;letter-spacing:1.5pt}
+.bk-namebar b{font-size:15pt;font-weight:600}
+.bk-items{position:absolute;bottom:0;left:0;right:0;height:38mm}
+.bk-hill{position:absolute;bottom:0;border-radius:50% 50% 0 0}
+.bk-back{padding:9mm 8mm;display:flex;flex-direction:column}
+.bk-back-panel{background:rgba(255,255,255,.9);border-radius:5mm;padding:5mm 6mm;box-shadow:0 2mm 6mm rgba(20,40,60,.1)}
+.bk-motto-chip{align-self:center;margin-top:4mm;background:rgba(255,255,255,.92);border-radius:20mm;padding:2mm 6mm;font-weight:600;color:var(--tc);font-size:9.5pt}
+.bk-back-title{text-align:center;font-weight:700;font-size:15pt;color:var(--tc);margin-bottom:3.5mm}
+.bk-mult{width:100%;border-collapse:collapse;font-family:Inter;font-size:6.6pt;table-layout:fixed}
+.bk-mult td,.bk-mult th{border:.25mm solid #cfd8e2;text-align:center;padding:.6mm;height:5.1mm}
+.bk-mult th{background:var(--tc);color:#fff;font-weight:600}
+.bk-mult td.h{background:#e6eef5;font-weight:700;color:var(--tc)}
+.bk-own{margin-top:auto;border:.5mm solid #d5dee8;border-radius:3mm;background:#fff;padding:5mm 6mm}
+.bk-own .r{display:flex;gap:3mm;padding:1.8mm 0;border-bottom:.3mm dashed #dce3ec}
+.bk-own .r:last-child{border-bottom:0}
+.bk-own .r i{width:20mm;font-family:Inter;font-style:normal;color:#7d8794;font-size:8.5pt;flex:none}
+.bk-own .r b{font-weight:600;font-size:10pt}
+.bk-motto{text-align:center;margin-top:3.5mm;font-weight:600;color:var(--tc);font-size:10pt}
+.bk-back-body{margin-bottom:3mm}
+.bk-sub{font-family:Inter;font-size:8pt;color:var(--tc);font-weight:700;margin:3mm 0 1.5mm;text-transform:uppercase;letter-spacing:.5pt}
+.bk-sila{list-style:none;margin:0;padding:0;counter-reset:s}
+.bk-sila li{position:relative;padding:2.2mm 0 2.2mm 9mm;border-bottom:.3mm dashed #dce3ec;font-size:9pt;line-height:1.22;font-family:Inter}
+.bk-sila li:last-child{border-bottom:0}
+.bk-sila li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:2mm;width:6mm;height:6mm;background:var(--tc);color:#fff;border-radius:50%;font-size:7.5pt;font-weight:700;display:flex;align-items:center;justify-content:center}
+.bk-abjad{display:flex;flex-wrap:wrap;gap:1.4mm;font-family:Inter}
+.bk-abjad span{width:8mm;height:8mm;border:.3mm solid #cfd8e2;border-radius:1.5mm;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:600;color:#334}
+.bk-numlist{display:grid;grid-template-columns:1fr 1fr;gap:0 5mm;font-family:Inter;font-size:8.2pt}
+.bk-numlist div{display:flex;gap:2mm;padding:.7mm 0;border-bottom:.25mm dotted #e2e8ef}
+.bk-numlist b{color:var(--tc);width:6mm;text-align:right}
+.bk-chips2{display:flex;flex-wrap:wrap;gap:1.6mm}
+.bk-chips2 span{display:flex;align-items:center;gap:1.6mm;border:.3mm solid #d5dee8;border-radius:6mm;padding:1.3mm 3.2mm;font-family:Inter;font-size:8pt}
+.bk-dot{width:3mm;height:3mm;border-radius:50%;display:inline-block;flex:none}
+.bk-vals{columns:2;column-gap:5mm;font-family:Inter;font-size:8.6pt;line-height:1.55;color:#3a4553}
+.bk-vals div{break-inside:avoid;padding:.3mm 0}
+.bk-page{width:${HALF}cm;height:${PAGEH}cm;padding:12mm 9mm 8mm 9mm;background:#fff;font-family:Inter}
+.bk-daterow{height:9mm;display:flex;gap:6mm;align-items:flex-end;font-size:8.5pt;color:#5b6672;padding-bottom:2mm;border-bottom:.5mm solid var(--tc)}
+.bk-daterow em{font-style:normal;border-bottom:.3mm solid #9aa6b5;flex:1;display:inline-block;margin-left:2mm}
+.bk-lines{display:block}
+.bk-foot{height:6mm;display:flex;justify-content:space-between;align-items:center;font-size:8pt}
+.bk-owner{color:#8a94a1;font-style:italic}
+.bk-pageno{color:#7a828f;letter-spacing:1pt}
+`;
+(function injectNbCss(){ const st=document.createElement('style'); st.textContent=NB_CSS; document.head.appendChild(st); })();
+
+/* ---- line background (shared) ---- */
+function lineBgStyle(){
+  const sp=NB.spacing, lc='#c4cdda', lcf='#dde3ec', red='#e06666';
+  let imgs=[], sizes=[], reps=[], poss=[];
+  if(NB.line==='ruled'){
+    imgs.push(`repeating-linear-gradient(to bottom, transparent 0, transparent calc(${sp}mm - .25mm), ${lc} calc(${sp}mm - .25mm), ${lc} ${sp}mm)`);
+    sizes.push('auto'); reps.push('repeat'); poss.push('0 0');
+  } else if(NB.line==='grid'){
+    imgs.push(`repeating-linear-gradient(to bottom, transparent 0, transparent calc(${sp}mm - .2mm), ${lc} calc(${sp}mm - .2mm), ${lc} ${sp}mm)`);
+    imgs.push(`repeating-linear-gradient(to right, transparent 0, transparent calc(${sp}mm - .2mm), ${lc} calc(${sp}mm - .2mm), ${lc} ${sp}mm)`);
+    sizes.push('auto','auto'); reps.push('repeat','repeat'); poss.push('0 0','0 0');
+  } else if(NB.line==='dotted'){
+    imgs.push(`radial-gradient(${lc} .35mm, transparent .4mm)`);
+    sizes.push(`${sp}mm ${sp}mm`); reps.push('repeat'); poss.push('0 0');
+  } else if(NB.line==='fine'){
+    imgs.push(`repeating-linear-gradient(to bottom, transparent 0, transparent calc(${sp}mm - .28mm), ${lc} calc(${sp}mm - .28mm), ${lc} ${sp}mm)`);
+    imgs.push(`repeating-linear-gradient(to bottom, transparent 0, transparent calc(${sp/2}mm - .15mm), ${lcf} calc(${sp/2}mm - .15mm), ${lcf} ${sp/2}mm)`);
+    sizes.push('auto','auto'); reps.push('repeat','repeat'); poss.push('0 0','0 0');
+  }
+  if(NB.margin && NB.line!=='blank'){
+    imgs.push(`linear-gradient(to right, transparent 0, transparent 8mm, ${red} 8mm, ${red} calc(8mm + .5mm), transparent calc(8mm + .5mm))`);
+    sizes.push('100% 100%'); reps.push('no-repeat'); poss.push('0 0');
+  }
+  return {backgroundImage:imgs.join(', '), backgroundSize:sizes.join(', '), backgroundRepeat:reps.join(', '), backgroundPosition:poss.join(', ')};
+}
+
+/* ---- decorative SVG ---- */
+function sunSVG(){ return `<svg style="position:absolute;top:8mm;right:8mm" width="26mm" height="26mm" viewBox="0 0 100 100">
+  <g stroke="#FFC64A" stroke-width="6" stroke-linecap="round">
+    <line x1="50" y1="6" x2="50" y2="20"/><line x1="50" y1="80" x2="50" y2="94"/>
+    <line x1="6" y1="50" x2="20" y2="50"/><line x1="80" y1="50" x2="94" y2="50"/>
+    <line x1="19" y1="19" x2="29" y2="29"/><line x1="71" y1="71" x2="81" y2="81"/>
+    <line x1="81" y1="19" x2="71" y2="29"/><line x1="29" y1="71" x2="19" y2="81"/></g>
+  <circle cx="50" cy="50" r="23" fill="#FFD54A"/>
+  <circle cx="43" cy="47" r="2.6" fill="#7a5a00"/><circle cx="57" cy="47" r="2.6" fill="#7a5a00"/>
+  <path d="M42 56 Q50 63 58 56" fill="none" stroke="#7a5a00" stroke-width="2.6" stroke-linecap="round"/></svg>`; }
+function rainbowSVG(){ const cols=['#FF6B6B','#FF9F43','#FFD93D','#6BCB77','#4D96FF']; let a='';
+  cols.forEach((c,i)=>{ const r=44-i*6; a+=`<path d="M${50-r} 60 A${r} ${r} 0 0 1 ${50+r} 60" fill="none" stroke="${c}" stroke-width="5"/>`; });
+  return `<svg style="position:absolute;top:15mm;left:7mm" width="30mm" height="18mm" viewBox="0 0 100 62">${a}</svg>`; }
+function sparkSVG(x,y,s){ return `<svg style="position:absolute;top:${y};left:${x}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="#ffffff" opacity=".9"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>`; }
+function pencilSVG(pos){ return `<svg style="position:absolute;${pos}" width="10mm" height="24mm" viewBox="0 0 40 100">
+  <rect x="12" y="10" width="16" height="66" rx="2" fill="#FFC94D" stroke="#E0A93B" stroke-width="2"/>
+  <rect x="12" y="10" width="16" height="10" fill="#F48FB1"/>
+  <polygon points="12,76 28,76 20,96" fill="#F4D9A6" stroke="#E0A93B" stroke-width="2"/>
+  <polygon points="16,86 24,86 20,96" fill="#4B3B2A"/></svg>`; }
+function bookSVG(pos){ return `<svg style="position:absolute;${pos}" width="20mm" height="15mm" viewBox="0 0 100 76">
+  <path d="M50 16 C38 8 18 8 8 12 V66 C18 62 38 62 50 70 Z" fill="#7EC4F0" stroke="#3E9BD6" stroke-width="3"/>
+  <path d="M50 16 C62 8 82 8 92 12 V66 C82 62 62 62 50 70 Z" fill="#A6E3B6" stroke="#5DBE7C" stroke-width="3"/>
+  <line x1="50" y1="16" x2="50" y2="70" stroke="#4a6572" stroke-width="3"/></svg>`; }
+function starGrassSVG(pos){ return `<svg style="position:absolute;${pos}" width="12mm" height="12mm" viewBox="0 0 24 24" fill="#FFD54A" stroke="#E7B62E" stroke-width="1"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7L12 17.8 5.8 21.2 7 14.2l-5-4.9 7.1-1z"/></svg>`; }
+
+function motifSVG(key){
+  const S='stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+  switch(key){
+    case 'book': return `<svg viewBox="0 0 48 48" ${S}><path d="M24 12c-4-3-11-3-15-2v26c4-1 11-1 15 2 4-3 11-3 15-2V10c-4-1-11-1-15 2z"/><path d="M24 12v26"/></svg>`;
+    case 'ball': return `<svg viewBox="0 0 48 48" ${S}><circle cx="24" cy="24" r="16"/><path d="M24 8v32M8 24h32M13 13l22 22M35 13L13 35"/></svg>`;
+    case 'art': return `<svg viewBox="0 0 48 48" ${S}><path d="M24 8a16 15 0 1 0 0 30c2 0 3-2 2-4-1-3 1-4 3-4h4a7 7 0 0 0 7-8C40 15 32 8 24 8z"/><circle cx="16" cy="20" r="2" fill="currentColor"/><circle cx="24" cy="15" r="2" fill="currentColor"/><circle cx="32" cy="20" r="2" fill="currentColor"/></svg>`;
+    case 'chat': return `<svg viewBox="0 0 48 48" ${S}><path d="M8 12h32v20H22l-8 7v-7H8z"/><circle cx="18" cy="22" r="1.6" fill="currentColor"/><circle cx="24" cy="22" r="1.6" fill="currentColor"/><circle cx="30" cy="22" r="1.6" fill="currentColor"/></svg>`;
+    case 'star': case 'star5': return `<svg viewBox="0 0 48 48" ${S}><path d="M24 6l5.3 11.6L42 19l-9 8.7 2.3 12.3L24 34.2 12.7 40 15 27.7 6 19l12.7-1.4z"/></svg>`;
+    case 'math': default: return `<svg viewBox="0 0 48 48" ${S}><path d="M9 16h10M14 11v10"/><path d="M29 15l8 8M37 15l-8 8"/><path d="M10 33h10M10 38h10"/><path d="M31 32v10M26 37h10"/></svg>`;
+  }
+}
+
+/* ---- multiplication table ---- */
+function multTable(){
+  let h='<table class="bk-mult"><tr><th>×</th>';
+  for(let c=1;c<=10;c++) h+=`<th>${c}</th>`;
+  h+='</tr>';
+  for(let r=1;r<=10;r++){
+    h+=`<tr><td class="h">${r}</td>`;
+    for(let c=1;c<=10;c++) h+=`<td>${r*c}</td>`;
+    h+='</tr>';
+  }
+  return h+'</table>';
+}
+
+/* ---- back-cover content per subject ---- */
+function backContent(key){
+  const shp=p=>`<svg width="3.6mm" height="3.6mm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--tc)">${p}</svg>`;
+  switch(key){
+    case 'pancasila': return {title:'Pancasila', body:`<ol class="bk-sila">
+      <li>Ketuhanan Yang Maha Esa</li>
+      <li>Kemanusiaan yang Adil dan Beradab</li>
+      <li>Persatuan Indonesia</li>
+      <li>Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan dalam Permusyawaratan / Perwakilan</li>
+      <li>Keadilan Sosial bagi Seluruh Rakyat Indonesia</li></ol>`};
+    case 'abjad': {
+      let U='',L='';
+      for(let i=65;i<=90;i++){ U+=`<span>${String.fromCharCode(i)}</span>`; L+=`<span>${String.fromCharCode(i+32)}</span>`; }
+      const vok=['A','I','U','E','O'].map(v=>`<span>${v}</span>`).join('');
+      return {title:'Abjad A – Z', body:`<div class="bk-sub">Huruf Besar</div><div class="bk-abjad">${U}</div>
+        <div class="bk-sub">Huruf Kecil</div><div class="bk-abjad">${L}</div>
+        <div class="bk-sub">Huruf Vokal</div><div class="bk-abjad">${vok}</div>`};
+    }
+    case 'angka': {
+      const w=['','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh','sebelas','dua belas','tiga belas','empat belas','lima belas','enam belas','tujuh belas','delapan belas','sembilan belas','dua puluh'];
+      let rows=''; for(let i=1;i<=20;i++) rows+=`<div><b>${i}</b> ${w[i]}</div>`;
+      return {title:'Mengenal Angka 1 – 20', body:`<div class="bk-numlist">${rows}</div>`};
+    }
+    case 'warna': return {title:'Warna & Bentuk', body:`
+      <div class="bk-sub">Warna Primer</div>
+      <div class="bk-chips2">
+        <span><i class="bk-dot" style="background:#e4002b"></i>Merah</span>
+        <span><i class="bk-dot" style="background:#ffd400"></i>Kuning</span>
+        <span><i class="bk-dot" style="background:#0f52ba"></i>Biru</span></div>
+      <div class="bk-sub">Warna Sekunder</div>
+      <div class="bk-chips2">
+        <span><i class="bk-dot" style="background:#2e9b5b"></i>Hijau</span>
+        <span><i class="bk-dot" style="background:#f57c00"></i>Jingga</span>
+        <span><i class="bk-dot" style="background:#7b3fa0"></i>Ungu</span></div>
+      <div class="bk-sub">Bangun Datar</div>
+      <div class="bk-chips2">
+        <span>${shp('<circle cx="10" cy="10" r="8"/>')}Lingkaran</span>
+        <span>${shp('<rect x="3" y="3" width="14" height="14" rx="1"/>')}Persegi</span>
+        <span>${shp('<path d="M10 3 L17 16 L3 16 Z" stroke-linejoin="round"/>')}Segitiga</span>
+        <span>${shp('<rect x="2" y="6" width="16" height="8" rx="1"/>')}Persegi Panjang</span></div>`};
+    case 'olahraga': return {title:'Ayo Berolahraga', body:`
+      <div class="bk-chips2">
+        <span>Sepak Bola</span><span>Bola Voli</span><span>Bulu Tangkis</span><span>Basket</span>
+        <span>Lari</span><span>Renang</span><span>Senam</span><span>Lompat</span></div>
+      <div class="bk-sub">Ayo Hidup Sehat</div>
+      <div class="bk-vals"><div>Tidur cukup</div><div>Makan bergizi</div><div>Rajin olahraga</div>
+        <div>Cuci tangan</div><div>Minum air putih</div><div>Jaga kebersihan</div></div>`};
+    case 'nilai': return {title:'Nilai-Nilai Luhur', body:`
+      <div class="bk-vals">
+        <div>Jujur</div><div>Disiplin</div><div>Tanggung Jawab</div><div>Sopan Santun</div>
+        <div>Hormat kepada Orang Tua &amp; Guru</div><div>Suka Menolong</div>
+        <div>Bersyukur</div><div>Sabar</div><div>Rajin Belajar</div><div>Cinta Tanah Air</div></div>`};
+    case 'perkalian':
+    default: return {title:'Perkalian 1 – 10', body:multTable()};
+  }
+}
+
+/* ---- builders ---- */
+/* ---- cover scene background (spans whole F4 sheet) ---- */
+function sceneBgStyle(){
+  const s={backgroundRepeat:'no-repeat',backgroundPosition:'center',backgroundSize:'cover'};
+  switch(NB.scene){
+    case 'malam': s.backgroundImage='linear-gradient(#25325c 0%, #3c5688 55%, #5b79a6 100%)'; break;
+    case 'laut':  s.backgroundImage='linear-gradient(#a5e2f5 0%, #4bb4de 50%, #1f88b8 100%)'; break;
+    case 'taman': s.backgroundImage='linear-gradient(#dff1ff 0%, #eafbe8 45%, #b7e4a3 100%)'; break;
+    case 'polka': s.backgroundColor='#fff4e6'; s.backgroundImage='radial-gradient(#ffd8a8 2.2mm, transparent 2.3mm)'; s.backgroundSize='16mm 16mm'; s.backgroundRepeat='repeat'; break;
+    case 'custom': s.backgroundColor='#eef2f6'; break;
+    case 'langit':
+    default: s.backgroundImage='linear-gradient(#bfe6ff 0%, #e9f7ff 52%, #d8f0d6 52%, #c3ebbf 100%)';
+  }
+  return s;
+}
+function moonSVG(p){ return `<svg style="position:absolute;${p}" width="24mm" height="24mm" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#FFF3B0"/><circle cx="42" cy="44" r="4" fill="#EDE08A"/><circle cx="60" cy="56" r="5" fill="#EDE08A"/><circle cx="55" cy="38" r="3" fill="#EDE08A"/></svg>`; }
+function starMini(x,y,s,c){ return `<svg style="position:absolute;left:${x};top:${y}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="${c||'#FFE08A'}"><path d="M12 2l2.4 6.9L22 9.2l-5.6 4.6 2 7.2L12 17.6 5.6 21l2-7.2L2 9.2l7.6-.3z"/></svg>`; }
+function bubbleSVG(x,y,s){ return `<svg style="position:absolute;left:${x};top:${y}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".8"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="2" fill="#fff" stroke="none"/></svg>`; }
+function fishSVG(x,y,col){ return `<svg style="position:absolute;left:${x};top:${y}" width="16mm" height="10mm" viewBox="0 0 60 36"><path d="M6 18 Q22 2 42 18 Q22 34 6 18Z" fill="${col}"/><polygon points="42,18 58,8 58,28" fill="${col}"/><circle cx="16" cy="16" r="2.4" fill="#123"/></svg>`; }
+function seaweedSVG(x){ return `<svg style="position:absolute;bottom:0;left:${x}" width="12mm" height="30mm" viewBox="0 0 40 100"><path d="M20 100 Q6 78 20 58 Q34 38 20 16 Q10 6 20 0" fill="none" stroke="#2f9e6e" stroke-width="6" stroke-linecap="round"/></svg>`; }
+function flowerSVG(x,col){ const p=[0,72,144,216,288].map(a=>`<ellipse cx="20" cy="7" rx="5.5" ry="9" fill="${col}" transform="rotate(${a} 20 20)"/>`).join(''); return `<svg style="position:absolute;bottom:2mm;left:${x}" width="12mm" height="20mm" viewBox="0 0 40 66"><line x1="20" y1="66" x2="20" y2="26" stroke="#4faa4f" stroke-width="3"/><g transform="translate(0,6)">${p}<circle cx="20" cy="20" r="5" fill="#FFD54A"/></g></svg>`; }
+function butterflySVG(x,y,col){ return `<svg style="position:absolute;left:${x};top:${y}" width="11mm" height="9mm" viewBox="0 0 44 34"><path d="M22 17 C10 2 2 6 6 16 C2 26 12 32 22 17Z" fill="${col}"/><path d="M22 17 C34 2 42 6 38 16 C42 26 32 32 22 17Z" fill="${col}" opacity=".85"/><line x1="22" y1="7" x2="22" y2="27" stroke="#333" stroke-width="2"/></svg>`; }
+function cloud(w,h,t,l){ return `<div class="bk-cloud" style="width:${w};height:${h};top:${t};left:${l}"></div>`; }
+function grassHills(){ return `<div class="bk-hill" style="width:130mm;height:26mm;left:-12mm;background:#8ed07d"></div><div class="bk-hill" style="width:175mm;height:34mm;right:-22mm;background:#7ac96a"></div>`; }
+
+function decorLayer(){
+  const d=el('bk-decor'); let h=''; const v=NB.scene;
+  if(v==='langit'){
+    h+=sunSVG()+rainbowSVG();
+    h+=cloud('22mm','12mm','16mm','60mm')+cloud('15mm','9mm','26mm','120mm')+cloud('20mm','11mm','14mm','250mm');
+    h+=starMini('150mm','24mm','5mm','#fff')+starMini('205mm','40mm','4mm','#fff');
+    h+=grassHills();
+    h+=pencilSVG('bottom:8mm;left:214mm;transform:rotate(-14deg)')+bookSVG('bottom:6mm;left:250mm')+starGrassSVG('bottom:20mm;left:298mm')+starGrassSVG('bottom:18mm;left:20mm');
+  } else if(v==='malam'){
+    h+=moonSVG('top:10mm;left:288mm');
+    const pts=[[20,20],[55,40],[95,18],[140,52],[175,28],[210,60],[245,22],[300,48],[70,70],[260,80],[120,90],[190,15]];
+    pts.forEach((p,i)=>{ h+=starMini(p[0]+'mm',p[1]+'mm',(i%3===0?'6mm':'4mm'),'#FFE08A'); });
+    h+=`<div class="bk-hill" style="width:340mm;height:22mm;left:-5mm;background:#26305a"></div>`;
+  } else if(v==='laut'){
+    for(let i=0;i<14;i++){ h+=bubbleSVG((10+i*23%320)+'mm',((i*37)%150+15)+'mm',(i%3===0?'6mm':'4mm')); }
+    h+=fishSVG('70mm','60mm','#FF9F43')+fishSVG('230mm','40mm','#FFD54A')+fishSVG('180mm','120mm','#FF6B6B');
+    h+=seaweedSVG('20mm')+seaweedSVG('120mm')+seaweedSVG('240mm')+seaweedSVG('300mm');
+  } else if(v==='taman'){
+    h+=sunSVG();
+    h+=cloud('20mm','11mm','16mm','120mm')+cloud('16mm','9mm','24mm','250mm');
+    h+=butterflySVG('90mm','40mm','#E8663D')+butterflySVG('260mm','55mm','#8E44AD');
+    const cols=['#FF6B6B','#FFD54A','#FF9F43','#E36FB0','#7B5BD6','#FF6B6B','#FFD54A','#E36FB0'];
+    for(let i=0;i<9;i++){ h+=flowerSVG((8+i*38)+'mm',cols[i%cols.length]); }
+  } else if(v==='polka'){
+    h+=starMini('30mm','24mm','7mm','#FF9F43')+starMini('280mm','30mm','7mm','#E36FB0')+starMini('160mm','18mm','6mm','#5B9BD6')+starMini('210mm','120mm','6mm','#7AC96A')+starMini('60mm','130mm','6mm','#FF6B6B');
+  }
+  d.innerHTML=h; return d;
+}
+
+function frontInner(f){
+  return `
+    <div class="bk-school-top">${esc(f.sekolah)||'SEKOLAH DASAR'}</div>
+    <div class="bk-card">
+      <span class="bk-pill">BUKU TULIS</span>
+      <div class="bk-motif">${motifSVG(NB.motif)}</div>
+      <div class="bk-subject">${esc(f.mapel)||'Mata Pelajaran'}</div>
+    </div>
+    <div class="bk-namebar"><span>NAMA</span><b>${esc(f.nama)||'-'}</b></div>`;
+}
+function buildCoverSheet(){
+  const f=NB.f;
+  const sheet=el('bk-sheet bk-cover-sheet'); sheet.style.width=F4.w+'cm'; sheet.style.height=F4.h+'cm'; sheet.style.setProperty('--tc',NB.theme);
+  Object.assign(sheet.style, sceneBgStyle());
+  if(NB.scene==='custom' && NB.coverImg){ const im=document.createElement('img'); im.className='bk-coverimg'; im.src=NB.coverImg; sheet.appendChild(im); }
+  sheet.appendChild(decorLayer());
+  const back=el('bk-half bk-back');
+  const bc=backContent(NB.back);
+  back.innerHTML=`<div class="bk-back-panel"><div class="bk-back-title">${bc.title}</div><div class="bk-back-body">${bc.body}</div></div>
+    <div class="bk-own">
+      <div class="r"><i>Milik</i><b>${esc(f.nama)||'&nbsp;'}</b></div>
+      <div class="r"><i>Kelas</i><b>${esc(f.kelas)||'&nbsp;'}</b></div>
+      <div class="r"><i>Sekolah</i><b>${esc(f.sekolah)||'&nbsp;'}</b></div>
+    </div>
+    <div class="bk-motto-chip">✦ Rajin Pangkal Pandai ✦</div>`;
+  const front=el('bk-half bk-front'); front.innerHTML=frontInner(f);
+  sheet.appendChild(back);
+  sheet.appendChild(el('bk-fold'));
+  sheet.appendChild(front);
+  return sheet;
+}
+/* ruled lines as real SVG (prints even if background graphics are off) */
+function rulesSVG(wmm,hmm){
+  const sp=NB.spacing, lc='#8a99ad', lcf='#b9c3d1', red='#e0574d';
+  const uid='p'+Math.random().toString(36).slice(2,7);
+  let defs='', shapes='';
+  if(NB.line==='ruled'){
+    defs=`<pattern id="${uid}" width="${wmm}" height="${sp}" patternUnits="userSpaceOnUse"><line x1="0" y1="${sp}" x2="${wmm}" y2="${sp}" stroke="${lc}" stroke-width="0.3"/></pattern>`;
+    shapes=`<rect width="${wmm}" height="${hmm}" fill="url(#${uid})"/>`;
+  } else if(NB.line==='fine'){
+    defs=`<pattern id="${uid}" width="${wmm}" height="${sp}" patternUnits="userSpaceOnUse"><line x1="0" y1="${sp}" x2="${wmm}" y2="${sp}" stroke="${lc}" stroke-width="0.3"/><line x1="0" y1="${sp/2}" x2="${wmm}" y2="${sp/2}" stroke="${lcf}" stroke-width="0.2"/></pattern>`;
+    shapes=`<rect width="${wmm}" height="${hmm}" fill="url(#${uid})"/>`;
+  } else if(NB.line==='grid'){
+    defs=`<pattern id="${uid}" width="${sp}" height="${sp}" patternUnits="userSpaceOnUse"><path d="M${sp} 0 L0 0 0 ${sp}" fill="none" stroke="${lc}" stroke-width="0.28"/></pattern>`;
+    shapes=`<rect width="${wmm}" height="${hmm}" fill="url(#${uid})"/>`;
+  } else if(NB.line==='dotted'){
+    defs=`<pattern id="${uid}" width="${sp}" height="${sp}" patternUnits="userSpaceOnUse"><circle cx="${sp/2}" cy="${sp/2}" r="0.45" fill="${lc}"/></pattern>`;
+    shapes=`<rect width="${wmm}" height="${hmm}" fill="url(#${uid})"/>`;
+  }
+  if(NB.margin && NB.line!=='blank') shapes+=`<line x1="8" y1="0" x2="8" y2="${hmm}" stroke="${red}" stroke-width="0.5"/>`;
+  return `<svg class="bk-lines" width="${wmm}mm" height="${hmm}mm" viewBox="0 0 ${wmm} ${hmm}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${shapes}</svg>`;
+}
+function buildInsidePage(no){
+  const p=el('bk-page');
+  const showFoot = (NB.ownername && NB.f.nama) || (NB.pagenum && no);
+  const dateH = NB.dateline?9:0, footH = showFoot?6:0;
+  const linesH = 195 - dateH - footH, linesW = 147;
+  let html='';
+  if(NB.dateline) html+=`<div class="bk-daterow">Hari :<em></em> Tanggal :<em></em></div>`;
+  html+=rulesSVG(linesW, linesH);
+  if(showFoot){
+    const left = (NB.ownername && NB.f.nama) ? `<span class="bk-owner">${esc(NB.f.nama)}</span>` : '<span></span>';
+    const right = (NB.pagenum && no) ? `<span class="bk-pageno">~ ${no} ~</span>` : '<span></span>';
+    html+=`<div class="bk-foot">${left}${right}</div>`;
+  }
+  p.innerHTML=html;
+  return p;
+}
+function buildInsideSheet(lNo,rNo){
+  const sheet=el('bk-sheet'); sheet.style.width=F4.w+'cm'; sheet.style.height=F4.h+'cm'; sheet.style.setProperty('--tc',NB.theme);
+  sheet.appendChild(buildInsidePage(lNo));
+  sheet.appendChild(el('bk-fold'));
+  sheet.appendChild(buildInsidePage(rNo));
+  return sheet;
+}
+
+/* ---- preview ---- */
+function renderNbPreview(){
+  const box=$('nbPreview'); if(!box) return;
+  const sheet = NB.tab==='cover'? buildCoverSheet() : buildInsideSheet(2,3);
+  const wpx=F4.w*10*MM, hpx=F4.h*10*MM;
+  const boxW=box.clientWidth-32, capH=430;
+  const scale=Math.min(boxW/wpx, capH/hpx);
+  const wrap=el('nb-scale');
+  wrap.style.width=(wpx*scale)+'px'; wrap.style.height=(hpx*scale)+'px';
+  sheet.style.transformOrigin='top left'; sheet.style.transform=`scale(${scale})`;
+  wrap.appendChild(sheet);
+  box.innerHTML=''; box.appendChild(wrap);
+  $('nbPreviewNote').textContent = NB.tab==='cover'
+    ? 'Lembar F4 — kiri: sampul belakang (perkalian), kanan: sampul depan. Lipat di garis tengah.'
+    : 'Satu lembar F4 = 2 halaman. Lipat di garis putus-putus tengah.';
+}
+
+/* ---- print ---- */
+function nbOpenPrint(body){
+  printDoc(`<!DOCTYPE html><html><head><title>Buku Tulis — ${esc(NB.f.mapel)||'BIMI Store'}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>${NB_CSS}
+    @page{size:${F4.w}cm ${F4.h}cm;margin:0}
+    html,body{margin:0;padding:0;background:#fff}
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+    .pg{width:${F4.w}cm;height:${F4.h}cm;overflow:hidden;page-break-after:always;break-after:page}
+    .pg:last-child{page-break-after:auto;break-after:auto}
+    </style></head><body>${body}</body></html>`);
+}
+function wrapPg(elm){ return `<div class="pg">${elm.outerHTML}</div>`; }
+function nbPrint(){
+  let body=wrapPg(buildCoverSheet());
+  let n=1;
+  for(let i=0;i<NB.sheets;i++){ body+=wrapPg(buildInsideSheet(n,n+1)); n+=2; }
+  nbOpenPrint(body);
+}
+function nbPrintCover(){ nbOpenPrint(wrapPg(buildCoverSheet())); }
+
+/* ---- controls ---- */
+function nbBuildLines(){
+  const box=$('nbLineChips'); box.innerHTML='';
+  NB_LINES.forEach(o=>{
+    const b=document.createElement('button'); b.className='chip'+(NB.line===o.v?' on':'');
+    b.innerHTML=`<b>${o.b}</b><small>${o.s}</small>`;
+    b.onclick=()=>{NB.line=o.v; nbBuildLines(); $('nbSpacingWrap').style.display=o.v==='blank'?'none':'block'; if(NB.tab==='page') renderNbPreview(); nbSave();};
+    box.appendChild(b);
+  });
+}
+function nbBuildSubj(){
+  const box=$('nbSubjChips'); box.innerHTML='';
+  NB_SUBJECTS.forEach(s=>{
+    const b=document.createElement('button'); b.className='chip'+(NB.f.mapel===s.n?' on':'');
+    b.innerHTML=`<span class="dot" style="background:${s.c}"></span><b>${s.n}</b>`;
+    b.onclick=()=>{NB.f.mapel=s.n; NB.theme=s.c; NB.motif=s.m; NB.back=s.b; $('nbMapel').value=s.n; $('nbBack').value=s.b; nbBuildSubj(); nbBuildThemes(); renderNbPreview(); nbSave();};
+    box.appendChild(b);
+  });
+}
+function nbBuildThemes(){
+  const box=$('nbThemes'); box.innerHTML='';
+  NB_THEMES.forEach(c=>{
+    const d=document.createElement('div'); d.className='sw'+(NB.theme.toUpperCase()===c.toUpperCase()?' on':'');
+    d.style.background=c; d.onclick=()=>{NB.theme=c; nbBuildThemes(); renderNbPreview(); nbSave();};
+    box.appendChild(d);
+  });
+  const cu=document.createElement('div'); cu.className='sw custom'; cu.title='Warna lain';
+  cu.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><input type="color" value="'+NB.theme+'">';
+  cu.querySelector('input').oninput=e=>{NB.theme=e.target.value; nbBuildThemes(); renderNbPreview(); nbSave();};
+  box.appendChild(cu);
+}
+function nbBuildScenes(){
+  const box=$('nbScenes'); box.innerHTML='';
+  NB_SCENES.forEach(s=>{
+    const b=document.createElement('button'); b.className='chip'+(NB.scene===s.v?' on':'');
+    b.innerHTML=`<b>${s.n}</b>`;
+    b.onclick=()=>{NB.scene=s.v; nbBuildScenes(); $('nbCoverDrop').style.display=s.v==='custom'?'block':'none'; if(NB.tab==='cover') renderNbPreview(); nbSave();};
+    box.appendChild(b);
+  });
+}
+function nbPagesHint(){ $('nbPagesHint').textContent = `≈ ${NB.sheets*2} halaman isi (${NB.sheets} lembar F4). Cetak bolak-balik agar hemat kertas.`; }
+
+function nbWire(){
+  const map={nbNama:'nama',nbSekolah:'sekolah',nbKelas:'kelas',nbMapel:'mapel',nbTahun:'tahun'};
+  Object.entries(map).forEach(([id,key])=>{
+    $(id).value=NB.f[key]||'';
+    $(id).oninput=()=>{NB.f[key]=$(id).value; if(id==='nbMapel') nbBuildSubj(); renderNbPreview(); nbSave();};
+  });
+  $('nbSpacing').oninput=e=>{NB.spacing=+e.target.value; $('nbSpacingVal').textContent=NB.spacing+' mm'; if(NB.tab==='page') renderNbPreview(); nbSave();};
+  $('nbMarginToggle').onclick=()=>{NB.margin=!NB.margin; $('nbMarginToggle').classList.toggle('on',NB.margin); if(NB.tab==='page') renderNbPreview(); nbSave();};
+  $('nbPagenumToggle').onclick=()=>{NB.pagenum=!NB.pagenum; $('nbPagenumToggle').classList.toggle('on',NB.pagenum); if(NB.tab==='page') renderNbPreview(); nbSave();};
+  $('nbDateToggle').onclick=()=>{NB.dateline=!NB.dateline; $('nbDateToggle').classList.toggle('on',NB.dateline); if(NB.tab==='page') renderNbPreview(); nbSave();};
+  $('nbOwnerToggle').onclick=()=>{NB.ownername=!NB.ownername; $('nbOwnerToggle').classList.toggle('on',NB.ownername); if(NB.tab==='page') renderNbPreview(); nbSave();};
+  $('nbPreviewTab').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    [...$('nbPreviewTab').children].forEach(x=>x.classList.toggle('on',x===b)); NB.tab=b.dataset.t; renderNbPreview();});
+  $('nbPages').oninput=()=>{NB.sheets=Math.max(1,+$('nbPages').value||1); nbPagesHint(); nbSave();};
+  $('nbMinus').onclick=()=>{NB.sheets=Math.max(1,NB.sheets-1); $('nbPages').value=NB.sheets; nbPagesHint(); nbSave();};
+  $('nbPlus').onclick=()=>{NB.sheets=NB.sheets+1; $('nbPages').value=NB.sheets; nbPagesHint(); nbSave();};
+  $('nbLogoDrop').onclick=()=>$('nbLogoFile').click();
+  $('nbLogoFile').onchange=e=>{const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader(); r.onload=()=>{NB.logo=r.result; $('nbLogoText').textContent='Logo terpasang · ketuk untuk ganti'; renderNbPreview(); nbSave();}; r.readAsDataURL(f);};
+  $('nbPrint').onclick=nbPrint;
+  $('nbPrintCover').onclick=nbPrintCover;
+  $('nbBack').value=NB.back;
+  $('nbBack').onchange=()=>{NB.back=$('nbBack').value; if(NB.tab==='cover') renderNbPreview(); nbSave();};
+  $('nbCoverDrop').onclick=()=>$('nbCoverFile').click();
+  $('nbCoverFile').onchange=e=>{const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>{ NB.coverImg=downscaleDataURL(im,1400); NB.scene='custom'; nbBuildScenes(); $('nbCoverDrop').style.display='block'; $('nbCoverText').textContent='Gambar terpasang · ketuk untuk ganti'; if(NB.tab==='cover') renderNbPreview(); nbSave(); }; im.onerror=()=>toast('Gagal memuat gambar',true); im.src=r.result; }; r.readAsDataURL(f);};
+}
+function nbSave(){ try{ localStorage.setItem('bimiBuku', JSON.stringify(NB)); }catch(e){} }
+function nbLoad(){
+  try{
+    const d=JSON.parse(localStorage.getItem('bimiBuku')||'{}');
+    Object.assign(NB, d, {f:Object.assign(NB.f, d.f||{})});
+    $('nbSpacing').value=NB.spacing; $('nbSpacingVal').textContent=NB.spacing+' mm';
+    $('nbPages').value=NB.sheets;
+    $('nbMarginToggle').classList.toggle('on',NB.margin);
+    $('nbPagenumToggle').classList.toggle('on',NB.pagenum);
+    $('nbDateToggle').classList.toggle('on',NB.dateline);
+    $('nbOwnerToggle').classList.toggle('on',NB.ownername);
+    $('nbSpacingWrap').style.display=NB.line==='blank'?'none':'block';
+    if(NB.logo) $('nbLogoText').textContent='Logo terpasang · ketuk untuk ganti';
+    $('nbBack').value=NB.back||'perkalian';
+    $('nbCoverDrop').style.display=NB.scene==='custom'?'block':'none';
+    if(NB.coverImg) $('nbCoverText').textContent='Gambar terpasang · ketuk untuk ganti';
+    [...$('nbPreviewTab').children].forEach(x=>x.classList.toggle('on',x.dataset.t===NB.tab));
+    nbPagesHint();
+  }catch(e){}
+}
+
+/* ================= View switching ================= */
+function switchView(v){
+  $('viewPasfoto').style.display = v==='pasfoto'?'block':'none';
+  $('viewBuku').style.display = v==='buku'?'block':'none';
+  [...document.querySelectorAll('.modes button')].forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='buku') renderNbPreview();
+}
+document.querySelector('.modes').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(b) switchView(b.dataset.v);
+});
+
+/* ================= Aplikasi resmi (PWA) ================= */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e;
+  $('btnInstall').style.display='inline-flex';
+});
+$('btnInstall').onclick=async()=>{
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  try{ await deferredInstall.userChoice; }catch(e){}
+  deferredInstall=null; $('btnInstall').style.display='none';
+};
+window.addEventListener('appinstalled',()=>{
+  deferredInstall=null; $('btnInstall').style.display='none';
+  toast('BIMI Store terpasang');
+});
+
+/* ================= Boot ================= */
+load();
+
+if(isCustomActive()){ $('customSize').style.display='flex'; $('cw').value=S.size.w; $('ch').value=S.size.h; }
+buildSizeChips(); buildSwatches(); buildPaper();
+$('customPaper').style.display=PAPERS[S.paperIdx].custom?'flex':'none';
+[...$('orientSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.o===S.orient));
+[...$('cutSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.c===S.cutStyle));
+[...$('alignSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.a===S.align));
+marginUI();
+$('stepper').classList.toggle('dis',S.fill);
+
+nbLoad(); nbBuildLines(); nbBuildSubj(); nbBuildScenes(); nbBuildThemes(); nbWire();
+
+/* pintasan dari ikon aplikasi: ?m=pasfoto / ?m=buku */
+(function(){
+  const m=new URLSearchParams(location.search).get('m');
+  if(m==='buku'||m==='pasfoto') switchView(m);
+})();
+
+window.addEventListener('resize',()=>{
+  if(S.work){ setupCanvasSize(); redraw(); }
+  if($('viewBuku').style.display!=='none') renderNbPreview();
+});
+</script>
+</body>
+</html>

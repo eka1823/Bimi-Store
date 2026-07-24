@@ -1,0 +1,48 @@
+{
+  "name": "BIMI Store — Cetak Pas Foto & Buku Tulis",
+  "short_name": "BIMI Store",
+  "description": "Cetak pas foto berbagai ukuran dan buat buku tulis sekolah. Semua diproses di perangkat.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15171c",
+  "theme_color": "#15171c",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["productivity", "photo", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cetak Pas Foto",
+      "short_name": "Pas Foto",
+      "url": "./?m=pasfoto",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Buat Buku Tulis",
+      "short_name": "Buku Tulis",
+      "url": "./?m=buku",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
