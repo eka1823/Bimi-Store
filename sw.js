@@ -1,7 +1,7 @@
 /* BIMI Store — service worker
    Membuat aplikasi bisa dibuka tanpa internet.
    Naikkan VERSI setiap kali index.html diperbarui. */
-const VERSI = 'bimi-v7';
+const VERSI = 'bimi-v8';
 
 const INTI = [
   './',

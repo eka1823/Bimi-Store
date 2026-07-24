@@ -119,6 +119,16 @@
   .thumb .info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
   .thumb .info span{color:var(--muted);font-size:11.5px}
   .thumb .rep{margin-left:auto;font-size:11.5px;color:var(--accent);cursor:pointer;flex:none}
+  .photostrip{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .pchip{position:relative;width:58px;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;
+    cursor:pointer;background:var(--panel2);flex:none}
+  .pchip.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .pchip img{width:58px;height:46px;object-fit:cover;display:block;background:#000}
+  .pchip .pcount{font-size:10.5px;text-align:center;color:var(--muted);padding:2px 0;font-weight:600}
+  .pchip .pdel{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;
+    background:rgba(0,0,0,.6);color:#fff;border:0;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .pchip.add{display:grid;place-items:center;min-height:70px;border-style:dashed;color:var(--muted)}
+  .pchip.add svg{width:20px;height:20px}
 
   /* Segmented + chips */
   .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
@@ -312,13 +322,14 @@
       <div class="card">
         <h3><span class="n">1</span> Foto</h3>
         <div class="drop" id="drop">
-          <input type="file" id="file" accept="image/*" hidden>
+          <input type="file" id="file" accept="image/*" multiple hidden>
           <div id="dropEmpty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15l-5-5L5 21"/><path d="M3 15V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
             <b>Pilih atau letakkan foto</b>
-            <small>JPG / PNG — sebaiknya wajah menghadap depan</small>
+            <small>JPG / PNG — bisa pilih beberapa sekaligus</small>
           </div>
         </div>
+        <div class="photostrip" id="photoStrip" style="display:none"></div>
       </div>
 
       <div class="card">
@@ -407,7 +418,7 @@
           <label class="facetoggle on" id="fillToggle"><span class="switch"></span> Penuhi lembar</label>
         </div>
         <div class="qtyrow" id="qtyRow">
-          <span>Jumlah foto</span>
+          <span id="qtyLabel">Jumlah salinan</span>
           <div class="stepper" id="stepper">
             <button class="stepbtn" id="qtyMinus" aria-label="Kurangi">−</button>
             <input type="number" id="qty" min="1" max="200" value="8">
@@ -635,7 +646,8 @@ const S = {
   samples: [],
   fill: true, qty: 8, cutStyle:'line', guide: false,
   orient:'portrait', customPaper:{w:10, h:15}, margin:3, gap:2, border:false, borderW:2, align:'center',
-  zoom: 0
+  zoom: 0,
+  photos: [], active: -1
 };
 
 const SIZES = [
@@ -747,11 +759,12 @@ function bindToggle(elId, key, after){
   const el=$(elId);
   el.onclick=()=>{S[key]=!S[key]; el.classList.toggle('on',S[key]); after&&after(); save();};
 }
-bindToggle('fillToggle','fill',()=>{$('stepper').classList.toggle('dis',S.fill); scheduleSheet();});
+bindToggle('fillToggle','fill',()=>{$('stepper').classList.toggle('dis',S.fill); syncQty&&syncQty(); scheduleSheet();});
 bindToggle('guideToggle','guide',redraw);
-$('qty').oninput=()=>{S.qty=Math.max(1,+$('qty').value||1); scheduleSheet(); save();};
-$('qtyMinus').onclick=()=>{ if(S.fill) return; S.qty=Math.max(1,S.qty-1); $('qty').value=S.qty; scheduleSheet(); save(); };
-$('qtyPlus').onclick=()=>{ if(S.fill) return; S.qty=S.qty+1; $('qty').value=S.qty; scheduleSheet(); save(); };
+function setActiveCount(v){ const p=S.photos[S.active]; if(!p) return; p.count=Math.max(1,Math.min(200,v)); $('qty').value=p.count; renderStrip(); scheduleSheet(); }
+$('qty').oninput=()=>{ if(S.fill) return; setActiveCount(+$('qty').value||1); };
+$('qtyMinus').onclick=()=>{ if(S.fill) return; const p=S.photos[S.active]; if(p) setActiveCount((p.count||1)-1); };
+$('qtyPlus').onclick=()=>{ if(S.fill) return; const p=S.photos[S.active]; if(p) setActiveCount((p.count||0)+1); };
 
 /* Sheet-layout controls */
 $('orientSeg').addEventListener('click',e=>{
@@ -795,64 +808,123 @@ $('cutSeg').addEventListener('click',e=>{
   S.cutStyle=b.dataset.c; scheduleSheet(); save();
 });
 
-/* ================= File load ================= */
+/* ================= File load & multi-foto ================= */
 const drop=$('drop'), fileInput=$('file');
-drop.onclick=()=>fileInput.click();
+drop.onclick=()=>{ if(S.active<0) fileInput.click(); };
 drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('hot');});
 drop.addEventListener('dragleave',()=>drop.classList.remove('hot'));
 drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('hot');
-  if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);});
-fileInput.onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
+  loadFiles(e.dataTransfer.files);});
+fileInput.onchange=e=>{ loadFiles(e.target.files); fileInput.value=''; };
 
-function loadFile(f){
-  if(!f.type.startsWith('image/')){ toast('File harus berupa gambar',true); return; }
-  const r=new FileReader();
-  r.onload=()=>{
-    const img=new Image();
-    img.onload=()=>{ setupImage(img, f.name); };
-    img.onerror=()=>toast('Gagal membaca gambar',true);
-    img.src=r.result;
-  };
-  r.readAsDataURL(f);
+function loadFiles(files){
+  const list=[...files].filter(f=>f.type.startsWith('image/'));
+  if(!list.length){ toast('File harus berupa gambar',true); return; }
+  list.forEach(f=>{
+    const r=new FileReader();
+    r.onload=()=>{ const img=new Image();
+      img.onload=()=>addPhoto(img, f.name);
+      img.onerror=()=>toast('Gagal membaca gambar',true);
+      img.src=r.result; };
+    r.readAsDataURL(f);
+  });
 }
 
-function setupImage(img, name){
-  // downscale to MAXDIM
+/* simpan/muat state foto aktif ke/dari S.* */
+function saveActive(){
+  const p=S.photos[S.active]; if(!p) return;
+  p.orig=S.original; p.work=S.work; p.pristine=S.pristineData;
+  p.transparent=S.transparent; p.crop=S.crop; p.samples=S.samples; p.zoom=S.zoom;
+}
+function loadActive(){
+  const p=S.photos[S.active]; if(!p) return;
+  S.original=p.orig; S.work=p.work; S.pristineData=p.pristine;
+  S.transparent=p.transparent; S.crop=p.crop; S.samples=p.samples; S.zoom=p.zoom;
+  S.method='none';
+  [...$('removeSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.m==='none'));
+  $('colorTools').style.display='none'; $('aiHint').style.display='none'; $('noneHint').style.display='block';
+  cropC.classList.remove('pick');
+  $('zoom').value=S.zoom||0;
+  setupCanvasSize(); redraw();
+}
+
+function addPhoto(img, name){
   let w=img.width, h=img.height;
   const sc=Math.min(1, MAXDIM/Math.max(w,h));
   w=Math.round(w*sc); h=Math.round(h*sc);
   const c=document.createElement('canvas'); c.width=w; c.height=h;
   const g=c.getContext('2d'); g.drawImage(img,0,0,w,h);
-  S.pristineData=g.getImageData(0,0,w,h);
+  const pristine=g.getImageData(0,0,w,h);
   const base=new Image();
   base.onload=()=>{
-    S.original=base; S.work=base; S.transparent=false; S.samples=[];
-    // reset method to none on new image
-    S.method='none';
-    [...$('removeSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.m==='none'));
-    $('colorTools').style.display='none'; $('aiHint').style.display='none'; $('noneHint').style.display='block';
-    cropC.classList.remove('pick');
-    initCrop();
-    showEditor(name, base);
-    redraw(); scheduleSheet();
+    if(S.active>=0) saveActive();
+    const photo={ name:name||'foto.jpg', orig:base, work:base, pristine, transparent:false,
+      crop:coverCrop(base, aspect()), samples:[], zoom:0, count:S.photos.length?4:8 };
+    S.photos.push(photo);
+    S.active=S.photos.length-1;
+    loadActive();
+    showEditor();
+    renderStrip(); syncQty(); scheduleSheet();
   };
   base.src=c.toDataURL('image/png');
 }
 
-function showEditor(name, img){
+function selectPhoto(i){
+  if(i===S.active) return;
+  saveActive(); S.active=i; loadActive(); renderStrip(); syncQty(); scheduleSheet();
+}
+function deletePhoto(i){
+  S.photos.splice(i,1);
+  if(!S.photos.length){ S.active=-1; resetEmpty(); renderStrip(); scheduleSheet(); return; }
+  S.active=Math.max(0, Math.min(i, S.photos.length-1));
+  loadActive(); renderStrip(); syncQty(); scheduleSheet();
+}
+function resetEmpty(){
+  S.original=S.work=S.pristineData=null; S.crop=null; S.samples=[]; S.transparent=false;
+  $('emptyImg').style.display='grid'; cropC.style.display='none';
+  $('zoomBar').style.display='none'; $('guideToggle').style.display='none'; $('dragHint').style.display='none';
+  $('btnPrint').disabled=true; $('btnDownload').disabled=true; $('btnShare').disabled=true; $('btnPdf').disabled=true;
+  drop.classList.remove('has'); $('dropEmpty').style.display='block';
+  const t=drop.querySelector('.thumb'); if(t) t.remove();
+  $('photoStrip').style.display='none';
+}
+
+function renderStrip(){
+  const strip=$('photoStrip'); strip.style.display='flex'; strip.innerHTML='';
+  S.photos.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='pchip'+(i===S.active?' on':'');
+    d.innerHTML=`<img src="${p.work.src}"><div class="pcount">${p.count}×</div><button class="pdel" title="Hapus">×</button>`;
+    d.querySelector('img').onclick=()=>selectPhoto(i);
+    d.querySelector('.pcount').onclick=()=>selectPhoto(i);
+    d.querySelector('.pdel').onclick=e=>{e.stopPropagation(); deletePhoto(i);};
+    strip.appendChild(d);
+  });
+  const add=document.createElement('div'); add.className='pchip add'; add.title='Tambah foto';
+  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+  add.onclick=()=>fileInput.click();
+  strip.appendChild(add);
+}
+function syncQty(){
+  const p=S.photos[S.active];
+  $('qtyLabel').textContent = S.photos.length>1 ? 'Salinan foto aktif' : 'Jumlah salinan';
+  if(p && !S.fill) $('qty').value=p.count;
+}
+
+function showEditor(){
   $('emptyImg').style.display='none';
   cropC.style.display='block';
   $('zoomBar').style.display='flex';
   $('guideToggle').style.display='flex';
   $('dragHint').style.display='block';
   $('btnPrint').disabled=false; $('btnDownload').disabled=false; $('btnShare').disabled=false; $('btnPdf').disabled=false;
-  // thumb in drop
   drop.classList.add('has');
   $('dropEmpty').style.display='none';
+  const img=S.work, name=(S.photos[S.active]||{}).name;
   let t=drop.querySelector('.thumb');
   if(!t){ t=document.createElement('div'); t.className='thumb'; drop.appendChild(t); }
-  t.innerHTML=`<img src="${img.src}"><div class="info"><b>${name||'foto.jpg'}</b><span>${img.naturalWidth}×${img.naturalHeight} px</span></div><span class="rep">Ganti</span>`;
+  t.innerHTML=`<img src="${img.src}"><div class="info"><b>${name||'foto.jpg'}</b><span>ketuk untuk tambah foto lain</span></div><span class="rep">+ Tambah</span>`;
   t.querySelector('.rep').onclick=e=>{e.stopPropagation();fileInput.click();};
+  t.onclick=e=>{e.stopPropagation();fileInput.click();};
 }
 
 /* ================= Crop geometry ================= */
@@ -885,13 +957,18 @@ function setupCanvasSize(){
   cropC.style.width=CW+'px'; cropC.style.height=CH+'px';
   cropC.width=Math.round(CW*DPR); cropC.height=Math.round(CH*DPR);
 }
+function reAspectCrop(work, c){
+  const a=aspect(), cxp=c.sx+c.sw/2, cyp=c.sy+c.sh/2;
+  let sh=c.sh, sw=sh*a;
+  if(sw>work.width){ sw=work.width; sh=sw/a; }
+  if(sh>work.height){ sh=work.height; sw=sh*a; }
+  return clamp({sx:cxp-sw/2, sy:cyp-sh/2, sw, sh}, work);
+}
 function onAspectChange(){
   if(!S.work) return;
-  const c=S.crop, cxp=c.sx+c.sw/2, cyp=c.sy+c.sh/2, a=aspect();
-  let sh=c.sh, sw=sh*a;
-  if(sw>S.work.width){ sw=S.work.width; sh=sw/a; }
-  if(sh>S.work.height){ sh=S.work.height; sw=sh*a; }
-  S.crop=clamp({sx:cxp-sw/2, sy:cyp-sh/2, sw, sh});
+  S.crop=reAspectCrop(S.work, S.crop);
+  // sesuaikan crop foto lain juga
+  S.photos.forEach((p,i)=>{ if(i!==S.active && p.work && p.crop) p.crop=reAspectCrop(p.work, p.crop); });
   setupCanvasSize();
   redraw(); scheduleSheet();
 }
@@ -966,11 +1043,12 @@ function drawGuide(w,h){
 }
 
 /* ================= Color-based removal ================= */
+function syncActiveWork(){ const p=S.photos[S.active]; if(p){ p.work=S.work; p.transparent=S.transparent; renderStrip(); } }
 function resetToOriginal(){
   if(!S.original) return;
   S.work=S.original; S.transparent=false;
   S.crop=clamp(S.crop||coverCrop(S.original,aspect()), S.original);
-  redraw(); scheduleSheet();
+  syncActiveWork(); redraw(); scheduleSheet();
 }
 function pickColor(e){
   const {ix,iy}=evtToImg(e);
@@ -999,7 +1077,7 @@ function applyColorRemoval(){
   const c=document.createElement('canvas'); c.width=w; c.height=h;
   c.getContext('2d').putImageData(out,0,0);
   const img=new Image();
-  img.onload=()=>{ S.work=img; S.transparent=true; redraw(); scheduleSheet(); };
+  img.onload=()=>{ S.work=img; S.transparent=true; syncActiveWork(); redraw(); scheduleSheet(); };
   img.src=c.toDataURL('image/png');
 }
 function featherAlpha(imgData, passes){
@@ -1033,7 +1111,7 @@ async function runAI(){
     });
     const url=URL.createObjectURL(blob);
     const img=new Image();
-    img.onload=()=>{ S.work=img; S.transparent=true; unbusy(); redraw(); scheduleSheet(); toast('Latar berhasil dihapus'); };
+    img.onload=()=>{ S.work=img; S.transparent=true; syncActiveWork(); unbusy(); redraw(); scheduleSheet(); toast('Latar berhasil dihapus'); };
     img.onerror=()=>{ unbusy(); toast('Gagal memuat hasil',true); };
     img.src=url;
   }catch(err){
@@ -1050,17 +1128,16 @@ async function runAI(){
 let sheetTimer=null;
 function scheduleSheet(){ clearTimeout(sheetTimer); sheetTimer=setTimeout(()=>buildSheet(130,true),180); }
 
-function renderCell(w,h,bw){
+function renderCell(w,h,bw,work,cr){
   const c=document.createElement('canvas'); c.width=w; c.height=h;
   const g=c.getContext('2d'); g.imageSmoothingQuality='high';
-  const cr=S.crop;
   if(S.border && bw>0){
     g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
     g.fillStyle=S.bg; g.fillRect(bw,bw,w-2*bw,h-2*bw);
-    g.drawImage(S.work, cr.sx,cr.sy,cr.sw,cr.sh, bw,bw,w-2*bw,h-2*bw);
+    g.drawImage(work, cr.sx,cr.sy,cr.sw,cr.sh, bw,bw,w-2*bw,h-2*bw);
   } else {
     g.fillStyle=S.bg; g.fillRect(0,0,w,h);
-    g.drawImage(S.work, cr.sx,cr.sy,cr.sw,cr.sh, 0,0,w,h);
+    g.drawImage(work, cr.sx,cr.sy,cr.sw,cr.sh, 0,0,w,h);
   }
   return c;
 }
@@ -1072,8 +1149,22 @@ function cornerMarks(g,x,y,w,h,t){
   g.moveTo(x+w-t,y+h); g.lineTo(x+w,y+h); g.lineTo(x+w,y+h-t);
   g.stroke();
 }
+/* daftar salinan (foto+crop) untuk lembar */
+function copyList(maxCells){
+  if(S.active>=0) saveActive();
+  const P=S.photos.filter(p=>p.work);
+  if(!P.length) return [];
+  const seq=[];
+  if(S.fill){
+    const per=Math.floor(maxCells/P.length), rem=maxCells%P.length;
+    P.forEach((p,i)=>{ const c=per+(i<rem?1:0); for(let k=0;k<c;k++) seq.push(p); });
+  } else {
+    P.forEach(p=>{ for(let k=0;k<(p.count||0);k++) seq.push(p); });
+  }
+  return seq.slice(0,maxCells);
+}
 function buildSheet(dpi, preview){
-  if(!S.work) return null;
+  if(!S.photos.length) return null;
   const paper=getPaper();
   const pw=Math.round(paper.w/CM*dpi), ph=Math.round(paper.h/CM*dpi);
   const cw=Math.round(S.size.w/CM*dpi), chh=Math.round(S.size.h/CM*dpi);
@@ -1083,24 +1174,28 @@ function buildSheet(dpi, preview){
   let cols=Math.max(1,Math.floor((pw-2*margin+gap)/(cw+gap)));
   let rows=Math.max(1,Math.floor((ph-2*margin+gap)/(chh+gap)));
   const maxCells=cols*rows;
-  if(S.fill){ $('qty').value=maxCells; }
-  else if(S.qty>maxCells){ S.qty=maxCells; $('qty').value=maxCells; }
-  const count=S.fill? maxCells : Math.min(S.qty, maxCells);
+  const seq=copyList(maxCells);
+  const count=seq.length;
+  if(S.fill && S.photos.length<=1){ $('qty').value=maxCells; }
 
   const canvas=document.createElement('canvas'); canvas.width=pw; canvas.height=ph;
   const g=canvas.getContext('2d');
   g.fillStyle='#ffffff'; g.fillRect(0,0,pw,ph);
 
+  const usedRows=Math.max(1,Math.ceil(count/cols));
   const contentW=cols*cw+(cols-1)*gap, contentH=rows*chh+(rows-1)*gap;
   const startX = S.align==='topleft' ? Math.round(margin) : Math.round((pw-contentW)/2);
   const startY = S.align==='topleft' ? Math.round(margin) : Math.round((ph-contentH)/2);
 
-  const cell=renderCell(cw,chh,bw);
   const lw=Math.max(1,Math.round(dpi/600));
   g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+  const cellCache=new Map();
   let n=0;
   for(let row=0; row<rows && n<count; row++){
     for(let col=0; col<cols && n<count; col++){
+      const p=seq[n];
+      let cell=cellCache.get(p);
+      if(!cell){ cell=renderCell(cw,chh,bw,p.work,p.crop); cellCache.set(p,cell); }
       const x=Math.round(startX+col*(cw+gap)), y=Math.round(startY+row*(chh+gap));
       g.drawImage(cell,x,y);
       if(S.cutStyle==='line'){
@@ -1118,7 +1213,8 @@ function buildSheet(dpi, preview){
     const img=new Image(); img.src=canvas.toDataURL('image/png');
     $('sheetView').appendChild(img);
     const lbl=paper.label+(S.orient==='landscape'?' (lanskap)':'');
-    $('sheetInfo').textContent=`${lbl} · ${S.size.w}×${S.size.h} cm · ${count} foto (maks ${maxCells}/lembar)`;
+    const nP=S.photos.length;
+    $('sheetInfo').textContent=`${lbl} · ${S.size.w}×${S.size.h} cm · ${count} foto${nP>1?` (${nP} gambar)`:''} · maks ${maxCells}/lembar`;
   }
   return {canvas, paper, count};
 }
@@ -1281,7 +1377,7 @@ function load(){
 }
 
 /* ================= Buku Tulis ================= */
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 const NB = {
   line:'ruled', spacing:8, margin:true, pagenum:true, dateline:true, ownername:true,
   theme:'#2D6FB8', sheets:10, logo:null, tab:'cover', motif:'math', back:'perkalian',
