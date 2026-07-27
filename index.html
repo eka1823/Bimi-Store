@@ -365,7 +365,7 @@
         <p class="hint" id="noneHint">Warna latar hanya muncul bila latar dihapus lebih dulu. Untuk foto berlatar polos, pakai “Pilih warna”.</p>
       </div>
 
-      <div class="card">
+      <div class="card" id="layoutCard">
         <h3><span class="n">4</span> Lembar cetak</h3>
         <label class="fld" style="display:block">Kertas
           <select id="paper"></select>
@@ -654,12 +654,15 @@ const SIZES = [
   {w:2, h:3, label:'2×3', note:'cm'},
   {w:3, h:4, label:'3×4', note:'cm'},
   {w:4, h:6, label:'4×6', note:'cm'},
+  {w:21,   h:29.7, label:'A4', note:'1 foto/lembar', full:true},
+  {w:21.5, h:33,   label:'F4', note:'1 foto/lembar', full:true},
   {w:0, h:0, label:'Kustom', note:'atur sendiri', custom:true}
 ];
 const PAPERS = [
   {w:10.2, h:15.2, label:'4R (10×15 cm)'},
   {w:10,   h:15,   label:'10 × 15 cm'},
   {w:21,   h:29.7, label:'A4'},
+  {w:21.5, h:33,   label:'F4 / Folio'},
   {w:10.5, h:14.8, label:'A6'},
   {w:8.9,  h:12.7, label:'3R (9×13 cm)'},
   {custom:true, label:'Kustom…'}
@@ -696,8 +699,9 @@ function selectSize(i){
     S.size={w:parseFloat($('cw').value)||4, h:parseFloat($('ch').value)||6};
   } else {
     $('customSize').style.display='none';
-    S.size={w:s.w, h:s.h};
+    S.size={w:s.w, h:s.h, full:!!s.full};
   }
+  $('layoutCard').style.display = S.size.full ? 'none' : 'block';
   buildSizeChips(); onAspectChange(); save();
 }
 $('cw').oninput=$('ch').oninput=()=>{
@@ -1165,6 +1169,22 @@ function copyList(maxCells){
 }
 function buildSheet(dpi, preview){
   if(!S.photos.length) return null;
+  if(S.size.full){
+    if(S.active>=0) saveActive();
+    const p=S.photos[S.active] || S.photos[0]; if(!p) return null;
+    const pw=Math.round(S.size.w/CM*dpi), ph=Math.round(S.size.h/CM*dpi);
+    const canvas=document.createElement('canvas'); canvas.width=pw; canvas.height=ph;
+    const g=canvas.getContext('2d'); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+    const cell=renderCell(pw,ph,0,p.work,p.crop);
+    g.drawImage(cell,0,0);
+    if(preview){
+      $('sheetView').innerHTML='';
+      const img=new Image(); img.src=canvas.toDataURL('image/png');
+      $('sheetView').appendChild(img);
+      $('sheetInfo').textContent=`${S.size.label||(S.size.w+'×'+S.size.h)} · 1 foto penuh selembar`;
+    }
+    return {canvas, paper:{w:S.size.w, h:S.size.h, label:S.size.label||'penuh'}, count:1};
+  }
   const paper=getPaper();
   const pw=Math.round(paper.w/CM*dpi), ph=Math.round(paper.h/CM*dpi);
   const cw=Math.round(S.size.w/CM*dpi), chh=Math.round(S.size.h/CM*dpi);
@@ -2401,6 +2421,7 @@ try{ if(typeof APP_VERSION!=='undefined') $('verChip').textContent='v'+APP_VERSI
 load();
 
 if(isCustomActive()){ $('customSize').style.display='flex'; $('cw').value=S.size.w; $('ch').value=S.size.h; }
+(function(){ const mf=SIZES.find(s=>s.full && s.w===S.size.w && s.h===S.size.h); S.size.full=!!mf; $('layoutCard').style.display=S.size.full?'none':'block'; })();
 buildSizeChips(); buildSwatches(); buildPaper();
 $('customPaper').style.display=PAPERS[S.paperIdx].custom?'flex':'none';
 [...$('orientSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.o===S.orient));
